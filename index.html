@@ -1,1 +1,693 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Salary Manager</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><style>*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f6fb;color:#182033}header{background:linear-gradient(135deg,#5540cf,#765be7);color:#fff;padding:22px}.head,.wrap{max-width:1400px;margin:auto}.head{display:flex;justify-content:space-between;align-items:center;gap:15px}.wrap{padding:22px 18px}h1,h2{margin:0}h1{font-size:28px}.sub{opacity:.85;margin-top:5px}.card{background:#fff;border:1px solid #e4e6ee;border-radius:15px;padding:18px;box-shadow:0 6px 24px #2220400b}button{border:0;border-radius:9px;padding:10px 14px;font-weight:bold;cursor:pointer}.primary{background:#5b45d8;color:#fff}.secondary{background:#f0edff;color:#4d3ac1}input,select{border:1px solid #dfe2eb;border-radius:8px;height:40px;padding:0 11px;background:#fff;outline:0}.login{max-width:410px;margin:80px auto}.login input{width:100%;margin:6px 0}.msg{min-height:20px;color:#c0392b;font-size:13px}.homeTop{display:flex;justify-content:space-between;align-items:end;gap:15px;flex-wrap:wrap;margin-bottom:18px}.bigsearch{width:min(520px,100%);height:46px;font-size:15px}.sectionTitle{margin:0 0 14px}.deptgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}.dept{cursor:pointer;transition:.15s}.dept:hover{transform:translateY(-2px);border-color:#8b7be9}.deptIcon{font-size:25px}.deptName{font-weight:800;margin-top:9px}.deptCount{font-size:12px;color:#727b8f;margin-top:4px}.results{margin-top:18px}.result{display:grid;grid-template-columns:1.3fr 1fr auto auto auto;gap:15px;align-items:center;padding:13px 4px;border-bottom:1px solid #edf0f4}.result:last-child{border:0}.nums{font-size:12px;color:#727b8f}.nums b{color:#182033;margin-left:4px}.due b{color:#e47b18}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}.metric b{font-size:12px;color:#727b8f}.metric strong{display:block;font-size:25px;margin-top:5px}.payable strong{color:#5b45d8}.paid strong{color:#198754}.due strong{color:#e47b18}.toolbar,.detailhead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.layout{display:grid;grid-template-columns:330px 1fr;gap:18px}.search{margin:14px 0}.search input{width:100%}.members{max-height:600px;overflow:auto;display:flex;flex-direction:column;gap:7px}.member{padding:11px;border:1px solid #e5e7ee;border-radius:10px;cursor:pointer}.member:hover,.member.active{border-color:#8b7be9;background:#f7f5ff}.membername{font-weight:750}.mini{font-size:11px;color:#727b8f;margin-top:4px}.mnums{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:9px}.mnums div{font-size:11px;color:#727b8f}.mnums b{display:block;font-size:12px;color:#182033;margin-top:2px}.mnums .d b{color:#e47b18}.tablewrap{overflow:auto;border:1px solid #e3e5ed;border-radius:10px;margin-top:15px}table{width:100%;border-collapse:collapse;min-width:700px}th{background:#f7f4ff;padding:12px;text-align:left;font-size:12px}td{border-top:1px solid #edf0f4;padding:7px 10px;font-size:13px}td input{width:100%}.duecell{text-align:right;font-weight:bold}.zero{color:#198754}.pending{color:#e47b18}tfoot td{font-weight:800;background:#fafaff}.detailstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:13px}.detailstats div{text-align:center;padding:13px;background:#f8f7ff;border-radius:10px}.detailstats b{font-size:11px;color:#727b8f}.detailstats strong{display:block;font-size:19px;margin-top:4px}.empty{text-align:center;padding:80px 20px;color:#727b8f}.autosave{font-size:12px;color:#727b8f;margin-right:8px}.modal{display:none;position:fixed;inset:0;background:#10142666;place-items:center;z-index:5}.modalbox{width:min(450px,92%)}.modalbox input,.modalbox select{width:100%;margin:7px 0}.actions{text-align:right;margin-top:8px}@media(max-width:900px){.layout{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.result{grid-template-columns:1fr 1fr}.result button{grid-column:1/-1}}@media(max-width:560px){.head{align-items:flex-start}.result{grid-template-columns:1fr}.deptgrid{grid-template-columns:1fr 1fr}}</style></head><body><div id="login" class="login card"><h1>Salary Manager</h1><p>Manager login</p><input id="email" type="email" placeholder="Email"><input id="password" type="password" placeholder="Password"><div id="msg" class="msg"></div><button class="primary" style="width:100%" onclick="signin()">Sign In</button></div><div id="app" style="display:none"><header><div class="head"><div><h1>Salary Manager</h1><div class="sub">Manage salary records for all members</div></div><button class="secondary" onclick="signout()">Sign Out</button></div></header><div class="wrap"><section id="home"><div class="homeTop"><div><h2>Member Directory</h2><div class="sub" style="color:#727b8f">Search by name, designation or department</div></div><input id="homeSearch" class="bigsearch" placeholder="🔍 Search by name, designation, or department..." oninput="renderHomeResults()"></div><h2 class="sectionTitle">Departments</h2><div id="deptGrid" class="deptgrid"></div><div id="homeResults" class="card results" style="display:none"></div></section><section id="manager" style="display:none"><div style="margin-bottom:15px"><button class="secondary" onclick="showHome()">← Home</button></div><div class="cards"><div class="card metric payable"><b>TOTAL PAYABLE</b><strong id="allPayable">₹0</strong></div><div class="card metric paid"><b>TOTAL PAID</b><strong id="allPaid">₹0</strong></div><div class="card metric due"><b>TOTAL DUE</b><strong id="allDue">₹0</strong></div></div><div class="layout"><aside class="card"><div class="toolbar"><h2>Members (<span id="count">0</span>)</h2><button class="primary" onclick="openModal()">+ Add Member</button></div><div class="search"><input id="search" placeholder="Search name, designation or department..." oninput="renderMembers()"></div><div id="members" class="members"></div></aside><main class="card"><div id="empty" class="empty">Select a member to view and manage their salary.</div><div id="detail" style="display:none"><div class="detailhead"><div><h2 id="personName"></h2><div id="personRole"></div><div id="personDept" class="mini"></div></div><div><span id="saveStatus" class="autosave">All changes saved</span><select id="year" onchange="yearChanged()"></select> <button class="primary" onclick="saveRecords()">Save Now</button></div></div><div class="tablewrap"><table><thead><tr><th>Month</th><th>Payable Amount (₹)</th><th>Paid Amount (₹)</th><th>Payment Date</th><th>Due Amount (₹)</th></tr></thead><tbody id="rows"></tbody><tfoot><tr><td>YEAR TOTAL</td><td id="tp">₹0</td><td id="ta">₹0</td><td></td><td id="td">₹0</td></tr></tfoot></table></div><div class="detailstats"><div><b>YEAR PAYABLE</b><strong id="sp">₹0</strong></div><div><b>YEAR PAID</b><strong id="sa">₹0</strong></div><div><b>YEAR DUE</b><strong id="sd">₹0</strong></div></div></div></main></div></section></div></div><div id="modal" class="modal"><div class="card modalbox"><h2>Add Member</h2><input id="name" placeholder="Full name"><input id="role" placeholder="Designation"><select id="department"><option value="">Select department</option><option>Administration</option><option>Accounts</option><option>HR</option><option>IT</option><option>Operations</option><option>Sales</option><option>Marketing</option><option>Engineering</option><option>Other</option></select><div class="actions"><button onclick="closeModal()">Cancel</button> <button class="primary" onclick="addMember()">Add Member</button></div></div></div><script>const DEPARTMENTS=['Administration','Accounts','HR','IT','Operations','Sales','Marketing','Engineering','Other'];const SUPABASE_URL='https://ryqfahoiedgdpbbuuknb.supabase.co';const SUPABASE_ANON_KEY='sb_publishable_ydyMbJCC-U5m4W_vXh6HLg_6yngf3Jf';const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];let user=null,membersData=[],selected=null,saveTimer=null,homeDept='';const $=x=>document.getElementById(x),money=n=>'₹'+Number(n||0).toLocaleString('en-IN');function msg(x){$('msg').textContent=x}async function signin(){let e=$('email').value.trim(),p=$('password').value;if(!e||!p)return msg('Enter email and password.');let r=await db.auth.signInWithPassword({email:e,password:p});if(r.error)msg(r.error.message)}async function signout(){await db.auth.signOut()}db.auth.onAuthStateChange((_e,s)=>{user=s?.user||null;$('login').style.display=user?'none':'block';$('app').style.display=user?'block':'none';if(user)init()});function init(){let y=new Date().getFullYear();$('year').innerHTML='';for(let i=2019;i<=y+5;i++)$('year').innerHTML+=`<option>${i}</option>`;loadMembers(true)}async function loadMembers(first=false){let r=await db.from('people').select('*').order('name');if(r.error)return alert(r.error.message);membersData=r.data;renderHome();if(!first){renderMembers();dashboardTotals()}}function renderHome(){let groups={};membersData.forEach(p=>{let d=p.department||'Unassigned';groups[d]=(groups[d]||0)+1});let names=DEPARTMENTS.filter(d=>groups[d]).concat(Object.keys(groups).filter(d=>!DEPARTMENTS.includes(d)).sort());$('deptGrid').innerHTML=names.map(d=>`<div class="card dept" onclick="chooseDepartment('${escAttr(d)}')"><div class="deptIcon">🏢</div><div class="deptName">${esc(d)}</div><div class="deptCount">${groups[d]} member${groups[d]===1?'':'s'}</div></div>`).join('');renderHomeResults()}function chooseDepartment(d){homeDept=d;renderHomeResults();renderHome()}function renderHomeResults(){let q=$('homeSearch').value.trim().toLowerCase(),arr=membersData.filter(p=>(!homeDept||((p.department||'Unassigned')===homeDept))&&(!q||p.name.toLowerCase().includes(q)||String(p.role||'').toLowerCase().includes(q)||String(p.department||'Unassigned').toLowerCase().includes(q)));let box=$('homeResults');if(!homeDept&&!q){box.style.display='none';return}box.style.display='block';box.innerHTML=`<div class="toolbar"><h2>${homeDept?esc(homeDept):'Search Results'}</h2><button onclick="clearHomeFilter()">Clear</button></div>`+(arr.length?arr.map(p=>`<div class="result"><div><b>${esc(p.name)}</b><div class="mini">${esc(p.role||'No designation')} · ${esc(p.department||'Unassigned')}</div></div><div class="nums">Payable<b id="hp-${p.id}">₹0</b></div><div class="nums">Paid<b id="ha-${p.id}">₹0</b></div><div class="nums due">Due<b id="hd-${p.id}">₹0</b></div><button class="secondary" onclick="openPerson('${p.id}')">Manage</button></div>`).join(''):`<div class="empty" style="padding:40px">No members found.</div>`);loadHomeTotals(arr)}async function loadHomeTotals(arr){let yr=+$('year').value;for(const p of arr){let r=await db.from('salary_records').select('payable,paid').eq('person_id',p.id).eq('year',yr);if(r.error)continue;let a=r.data.reduce((x,z)=>x+(+z.payable||0),0),b=r.data.reduce((x,z)=>x+(+z.paid||0),0);if($('hp-'+p.id)){$('hp-'+p.id).textContent=money(a);$('ha-'+p.id).textContent=money(b);$('hd-'+p.id).textContent=money(Math.max(0,a-b))}}}function clearHomeFilter(){homeDept='';$('homeSearch').value='';renderHomeResults()}function showHome(){$('manager').style.display='none';$('home').style.display='block';selected=null;renderHome()}function openPerson(id){showManager();selectMember(id)}function showManager(){$('home').style.display='none';$('manager').style.display='block';renderMembers();dashboardTotals()}function renderMembers(){let q=$('search').value.toLowerCase(),arr=membersData.filter(x=>x.name.toLowerCase().includes(q)||String(x.role||'').toLowerCase().includes(q)||String(x.department||'').toLowerCase().includes(q));$('count').textContent=membersData.length;$('members').innerHTML=arr.map(p=>`<div class="member ${selected?.id===p.id?'active':''}" onclick="selectMember('${p.id}')"><div class="membername">${esc(p.name)}</div><div class="mini">${esc(p.role||'No designation')} · ${esc(p.department||'Unassigned')}</div><div class="mnums"><div>Payable<b id="p-${p.id}">₹0</b></div><div>Paid<b id="a-${p.id}">₹0</b></div><div class="d">Due<b id="d-${p.id}">₹0</b></div></div></div>`).join('');loadMemberTotals(arr)}async function loadMemberTotals(arr){let yr=+$('year').value;for(const p of arr){let r=await db.from('salary_records').select('payable,paid').eq('person_id',p.id).eq('year',yr);if(r.error)continue;let a=r.data.reduce((x,z)=>x+(+z.payable||0),0),b=r.data.reduce((x,z)=>x+(+z.paid||0),0);if($('p-'+p.id)){$('p-'+p.id).textContent=money(a);$('a-'+p.id).textContent=money(b);$('d-'+p.id).textContent=money(Math.max(0,a-b))}}}async function dashboardTotals(){let r=await db.from('salary_records').select('payable,paid').eq('year',+$('year').value);if(r.error)return;let p=r.data.reduce((x,z)=>x+(+z.payable||0),0),a=r.data.reduce((x,z)=>x+(+z.paid||0),0);$('allPayable').textContent=money(p);$('allPaid').textContent=money(a);$('allDue').textContent=money(Math.max(0,p-a))}function selectMember(id){selected=membersData.find(x=>x.id===id);$('empty').style.display='none';$('detail').style.display='block';$('personName').textContent=selected.name;$('personRole').textContent=selected.role||'No designation';$('personDept').textContent='Department: '+(selected.department||'Unassigned');renderMembers();loadRecords()}async function loadRecords(){if(!selected)return;let r=await db.from('salary_records').select('*').eq('person_id',selected.id).eq('year',+$('year').value);if(r.error)return alert(r.error.message);let map=new Map(r.data.map(x=>[x.month,x]));$('rows').innerHTML=months.map((m,i)=>{let x=map.get(i+1)||{};return `<tr><td>${m}</td><td><input class="payable" type="number" min="0" value="${x.payable||0}"></td><td><input class="paid" type="number" min="0" value="${x.paid||0}"></td><td><input class="date" type="date" value="${x.payment_date||''}"></td><td class="duecell">₹0</td></tr>`}).join('');calculate()}function calculate(){let p=0,a=0;document.querySelectorAll('#rows tr').forEach(t=>{let x=+t.querySelector('.payable').value||0,y=+t.querySelector('.paid').value||0;p+=x;a+=y;let d=Math.max(0,x-y),c=t.querySelector('.duecell');c.textContent=money(d);c.className='duecell '+(d?'pending':'zero')});let d=Math.max(0,p-a);$('tp').textContent=$('sp').textContent=money(p);$('ta').textContent=$('sa').textContent=money(a);$('td').textContent=$('sd').textContent=money(d)}function scheduleAutoSave(){calculate();$('saveStatus').textContent='Saving...';clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveRecords(true),900)}async function saveRecords(silent=false){if(!selected)return;$('saveStatus').textContent='Saving...';let yr=+$('year').value,d=[];document.querySelectorAll('#rows tr').forEach((t,i)=>d.push({person_id:selected.id,year:yr,month:i+1,payable:+t.querySelector('.payable').value||0,paid:+t.querySelector('.paid').value||0,payment_date:t.querySelector('.date').value||null}));let r=await db.from('salary_records').upsert(d,{onConflict:'person_id,year,month'});if(r.error){$('saveStatus').textContent='Save failed';if(!silent)alert(r.error.message);return}$('saveStatus').textContent='✓ Saved automatically';await dashboardTotals();renderMembers()}function yearChanged(){loadMembers();if(selected)loadRecords()}function openModal(){$('modal').style.display='grid'}function closeModal(){$('modal').style.display='none'}async function addMember(){let n=$('name').value.trim(),r=$('role').value.trim(),d=$('department').value;if(!n)return alert('Enter a name.');let x=await db.from('people').insert({name:n,role:r,department:d||null}).select().single();if(x.error)return alert(x.error.message);closeModal();$('name').value='';$('role').value='';$('department').value='';await loadMembers();showManager();selectMember(x.data.id)}function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}function escAttr(s){return esc(s).replace(/'/g,'&#039;')}document.addEventListener('input',e=>{if(e.target.matches('.payable,.paid,.date')){calculate();scheduleAutoSave()}})</script></body></html>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Salary Manager</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><style>*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f6fb;color:#182033}header{background:linear-gradient(135deg,#5540cf,#765be7);color:#fff;padding:22px}.head,.wrap{max-width:1400px;margin:auto}.head{display:flex;justify-content:space-between;align-items:center;gap:15px}.wrap{padding:22px 18px}h1,h2{margin:0}h1{font-size:28px}.sub{opacity:.85;margin-top:5px}.card{background:#fff;border:1px solid #e4e6ee;border-radius:15px;padding:18px;box-shadow:0 6px 24px #2220400b}button{border:0;border-radius:9px;padding:10px 14px;font-weight:bold;cursor:pointer}.primary{background:#5b45d8;color:#fff}.secondary{background:#f0edff;color:#4d3ac1}input,select{border:1px solid #dfe2eb;border-radius:8px;height:40px;padding:0 11px;background:#fff;outline:0}.login{max-width:410px;margin:80px auto}.login input{width:100%;margin:6px 0}.msg{min-height:20px;color:#c0392b;font-size:13px}.homeTop{display:flex;justify-content:space-between;align-items:end;gap:15px;flex-wrap:wrap;margin-bottom:18px}.bigsearch{width:min(520px,100%);height:46px;font-size:15px}.sectionTitle{margin:0 0 14px}.deptgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}.dept{cursor:pointer;transition:.15s}.dept:hover{transform:translateY(-2px);border-color:#8b7be9}.deptIcon{font-size:25px}.deptName{font-weight:800;margin-top:9px}.deptCount{font-size:12px;color:#727b8f;margin-top:4px}.results{margin-top:18px}.result{display:grid;grid-template-columns:1.3fr 1fr auto auto auto;gap:15px;align-items:center;padding:13px 4px;border-bottom:1px solid #edf0f4}.result:last-child{border:0}.nums{font-size:12px;color:#727b8f}.nums b{color:#182033;margin-left:4px}.due b{color:#e47b18}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}.metric b{font-size:12px;color:#727b8f}.metric strong{display:block;font-size:25px;margin-top:5px}.payable strong{color:#5b45d8}.paid strong{color:#198754}.due strong{color:#e47b18}.toolbar,.detailhead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.layout{display:grid;grid-template-columns:330px 1fr;gap:18px}.search{margin:14px 0}.search input{width:100%}.members{max-height:600px;overflow:auto;display:flex;flex-direction:column;gap:7px}.member{padding:11px;border:1px solid #e5e7ee;border-radius:10px;cursor:pointer}.member:hover,.member.active{border-color:#8b7be9;background:#f7f5ff}.membername{font-weight:750}.mini{font-size:11px;color:#727b8f;margin-top:4px}.mnums{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:9px}.mnums div{font-size:11px;color:#727b8f}.mnums b{display:block;font-size:12px;color:#182033;margin-top:2px}.mnums .d b{color:#e47b18}.tablewrap{overflow:auto;border:1px solid #e3e5ed;border-radius:10px;margin-top:15px}table{width:100%;border-collapse:collapse;min-width:700px}th{background:#f7f4ff;padding:12px;text-align:left;font-size:12px}td{border-top:1px solid #edf0f4;padding:7px 10px;font-size:13px}td input{width:100%}.duecell{text-align:right;font-weight:bold}.zero{color:#198754}.pending{color:#e47b18}tfoot td{font-weight:800;background:#fafaff}.detailstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:13px}.detailstats div{text-align:center;padding:13px;background:#f8f7ff;border-radius:10px}.detailstats b{font-size:11px;color:#727b8f}.detailstats strong{display:block;font-size:19px;margin-top:4px}.empty{text-align:center;padding:80px 20px;color:#727b8f}.autosave{font-size:12px;color:#727b8f;margin-right:8px}.modal{display:none;position:fixed;inset:0;background:#10142666;place-items:center;z-index:5}.modalbox{width:min(450px,92%)}.modalbox input,.modalbox select{width:100%;margin:7px 0}.actions{text-align:right;margin-top:8px}@media(max-width:900px){#bulk>div{overflow:hidden}#bulk .card>div[style*="grid-template-columns"]{grid-template-columns:1fr!important}.bulk-check{text-align:center}}@media(max-width:900px){.layout{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.result{grid-template-columns:1fr 1fr}.result button{grid-column:1/-1}}@media(max-width:560px){.head{align-items:flex-start}.result{grid-template-columns:1fr}.deptgrid{grid-template-columns:1fr 1fr}}.modal.open{display:grid!important;position:fixed;inset:0;z-index:9999;place-items:center;background:rgba(0,0,0,.45)}.modal.open .modalbox{display:block}.danger{background:#b42318!important;color:#fff!important;border:0}.danger:hover{filter:brightness(.92)}
+.deptExternal{float:right;text-decoration:none;font-size:18px}.deptName{line-height:1.45}
+.homeResultsFirst{margin-bottom:24px}
+.homeSummary{margin-bottom:20px}.summaryTitle{font-size:18px;font-weight:700;margin-bottom:14px}.summaryGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.summaryBox{padding:16px;border-radius:12px;background:rgba(0,0,0,.035)}.summaryBox span{display:block;font-size:13px;opacity:.72;margin-bottom:6px}.summaryBox strong{font-size:24px}.summaryBox.due strong{font-weight:800}@media(max-width:650px){.summaryGrid{grid-template-columns:1fr}}
+</style></head><body><div id="login" class="login card"><h1>Salary Manager</h1><p>Manager login</p><input id="email" type="email" placeholder="Email"><input id="password" type="password" placeholder="Password"><div id="msg" class="msg"></div><button id="signInBtn" class="primary" style="width:100%" onclick="signin()">Sign In</button></div><div id="app" style="display:none"><header><div class="head"><div><h1>Salary Manager</h1><div class="sub">Manage salary records for all members</div></div><button class="secondary" onclick="signout()">Sign Out</button></div></header><div class="wrap"><section id="home">
+<div class="homeSummary card">
+  <div class="summaryTitle">Overall Salary Summary — All Years</div>
+  <div class="summaryGrid">
+    <div class="summaryBox"><span>Total Payable</span><strong id="homeAllPayable">₹0</strong></div>
+    <div class="summaryBox"><span>Total Paid</span><strong id="homeAllPaid">₹0</strong></div>
+    <div class="summaryBox due"><span>Total Due</span><strong id="homeAllDue">₹0</strong></div>
+  </div>
+</div>
+<div class="homeTop"><input id="homeSearch" class="bigsearch" placeholder="🔍 Search by name, designation, or department..." oninput="renderHomeResults()" autocomplete="off"></div><div id="homeResults" class="homeResultsFirst card results" style="display:none"></div><h2 class="sectionTitle">Departments</h2><div id="deptGrid" class="deptgrid"></div></section>
+<section id="bulk" style="display:none">
+  <div style="margin-bottom:15px">
+    <button class="secondary" onclick="showHome()">← Home</button>
+  </div>
+  <div class="card">
+    <div class="toolbar">
+      <div>
+        <h2>Bulk Salary Entry</h2>
+        <div class="mini">Apply a monthly payable amount to selected members without changing existing paid amounts.</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px">
+      <div><label class="mini">Month</label><select id="bulkMonth" style="width:100%"></select></div>
+      <div><label class="mini">Year</label><select id="bulkYear" style="width:100%"></select></div>
+      <div><label class="mini">Department</label><select id="bulkDepartment" style="width:100%" onchange="renderBulkMembers()"></select></div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap">
+      <input id="bulkPayable" type="number" min="0" placeholder="Default payable amount (₹)" style="width:240px">
+      <button class="secondary" onclick="selectAllBulk(true)">Select All</button>
+      <button class="secondary" onclick="selectAllBulk(false)">Clear All</button>
+      <button class="primary" onclick="applyBulkPayable()">Apply Payable</button>
+      <span id="bulkStatus" class="autosave"></span>
+    </div>
+    <div class="tablewrap">
+      <table style="min-width:760px">
+        <thead><tr><th>Employee ID</th><th><input id="bulkAll" type="checkbox" onchange="selectAllBulk(this.checked)"></th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Department</th><th>Payable</th><th>Paid</th><th>Due</th></tr></thead>
+        <tbody id="bulkRows"></tbody>
+      </table>
+    </div>
+    <div style="text-align:right;margin-top:14px">
+      <button class="primary" onclick="saveBulk()">Save All to Online Database</button>
+    </div>
+  </div>
+</section>
+<section id="manager" style="display:none"><div style="margin-bottom:15px"><button class="secondary" onclick="showHome()">← Home</button> <button class="primary" onclick="showBulk()">⚡ Bulk Salary Entry</button> <button class="secondary" onclick="openImport()">📥 Import Excel</button></div><div class="toolbar" style="margin-bottom:15px"><div><h2 id="managerTitle">All Members</h2><div id="managerDeptNote" class="mini"></div></div><button class="secondary" onclick="clearManagerDepartment()">Show All Departments</button> <button class="danger" onclick="openClearData()">🗑 Clear All Data</button></div><div class="cards"><div class="card metric payable"><b>TOTAL PAYABLE</b><strong id="allPayable">₹0</strong></div><div class="card metric paid"><b>TOTAL PAID</b><strong id="allPaid">₹0</strong></div><div class="card metric due"><b>TOTAL DUE</b><strong id="allDue">₹0</strong></div></div><div class="layout"><aside class="card"><div class="toolbar"><h2>Members (<span id="count">0</span>)</h2><button class="primary" onclick="openModal()">+ Add Member</button></div><div class="search"><input id="search" placeholder="Search name, designation or department..." oninput="renderMembers()"></div><div id="members" class="members"></div></aside><main class="card"><div id="empty" class="empty">Select a member to view and manage their salary.</div><div id="detail" style="display:none"><div class="detailhead"><div><h2 id="personName"></h2><div id="personEmployeeId" class="mini"></div><div id="personRole"></div><div id="personDept" class="mini"></div></div><div><span id="saveStatus" class="autosave">All changes saved</span><select id="year" onchange="yearChanged()"></select> <button class="primary" onclick="saveRecords()">Save Now</button></div></div><div class="tablewrap"><table><thead><tr><th>Month</th><th>Payable Amount (₹)</th><th>Paid Amount (₹)</th><th>Payment Date</th><th>Due Amount (₹)</th></tr></thead><tbody id="rows"></tbody><tfoot><tr><td>YEAR TOTAL</td><td id="tp">₹0</td><td id="ta">₹0</td><td></td><td id="td">₹0</td></tr></tfoot></table></div><div class="detailstats"><div><b>YEAR PAYABLE</b><strong id="sp">₹0</strong></div><div><b>YEAR PAID</b><strong id="sa">₹0</strong></div><div><b>YEAR DUE</b><strong id="sd">₹0</strong></div></div></div></main></div></section></div></div>
+
+<div id="clearDataModal" class="modal">
+  <div class="card modalbox" style="width:min(520px,95%)">
+    <h2>⚠️ Clear All Data</h2>
+    <p>This will permanently delete <b>all members and all salary records</b> from the website database.</p>
+    <p class="mini">Your Supabase login account will not be deleted.</p>
+    <div class="actions">
+      <button onclick="closeClearData()">Cancel</button>
+      <button id="confirmClearBtn" class="danger" onclick="confirmClearData()">Delete Everything</button>
+    </div>
+    <div id="clearDataStatus" class="msg"></div>
+  </div>
+</div>
+<div id="importModal" class="modal"><div class="card modalbox" style="width:min(900px,95%)">
+  <h2>Import Excel</h2>
+  <p class="mini">Upload Excel/CSV with columns such as Employee ID, Name, Designation, Department, Payable, Paid, Payment Date. The importer can ignore title/blank rows above the table. The file is previewed before anything is saved.</p>
+  <input id="excelFile" type="file" accept=".xlsx,.xls,.csv" onchange="previewExcel()">
+  <div id="importStatus" class="msg" style="color:#727b8f;margin-top:8px"></div>
+  <div id="importPreview" class="tablewrap" style="display:none;max-height:380px"></div>
+  <div class="actions">
+    <button onclick="closeImport()">Cancel</button>
+    <button id="confirmImportBtn" class="primary" style="display:none" onclick="confirmImport()">Confirm Import</button>
+  </div>
+</div></div>
+<div id="modal" class="modal"><div class="card modalbox"><h2>Add Member</h2><input id="employeeId" placeholder="Employee ID (e.g. EMP001)"><input id="name" placeholder="Full name"><input id="role" placeholder="Designation"><select id="department"><option value="">Select department</option><option>Administration & Establishment</option><option>Revenue</option><option>Accounts & Finance</option><option>Public Works - PWD</option><option>Health & Sanitation</option><option>Water Supply</option><option>Town Planning & Building Permission</option><option>Electrical</option><option>E-Governance & IT</option><option>Workshop Department</option><option>Public Welfare & Public Grievance Redressal Department</option></select><div class="actions"><button onclick="closeModal()">Cancel</button> <button class="primary" onclick="addMember()">Add Member</button></div></div></div><script>const DEPARTMENTS=["Administration & Establishment","Revenue","Accounts & Finance","Public Works - PWD","Health & Sanitation","Water Supply","Town Planning & Building Permission","Electrical","E-Governance & IT","Workshop Department","Public Welfare & Public Grievance Redressal Department"];
+const DEPARTMENT_LABELS={
+"Administration & Establishment":"प्रशासनिक एवं स्थापना विभाग (Administration & Establishment)",
+"Revenue":"राजस्व विभाग (Revenue)",
+"Accounts & Finance":"लेखा एवं वित्त विभाग (Accounts & Finance)",
+"Public Works - PWD":"लोक निर्माण विभाग (Public Works - PWD)",
+"Health & Sanitation":"स्वास्थ्य एवं स्वच्छता विभाग (Health & Sanitation)",
+"Water Supply":"जल प्रदाय विभाग (Water Supply)",
+"Town Planning & Building Permission":"योजना एवं भवन अनुमति विभाग (Town Planning & Building Permission)",
+"Electrical":"विद्युत विभाग (Electrical)",
+"E-Governance & IT":"ई-गवर्नेंस एवं आईटी विभाग (E-Governance & IT)",
+"Workshop Department":"कर्मशाला विभाग (Workshop Department)",
+"Public Welfare & Public Grievance Redressal Department":"जन कल्याण एवं जनसुनवाई प्रकोष्ठ (Public Welfare & Public Grievance Redressal Department)"
+};
+const DEPARTMENT_LINKS={
+"Health & Sanitation":"https://npnainpur.mp-np.in/",
+"Water Supply":"https://npnainpur.mp-np.in/",
+"Town Planning & Building Permission":"https://nagarpalikakhargone.in/"
+};const SUPABASE_URL='https://ryqfahoiedgdpbbuuknb.supabase.co';const SUPABASE_ANON_KEY='sb_publishable_ydyMbJCC-U5m4W_vXh6HLg_6yngf3Jf';const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];let user=null,membersData=[],selected=null,saveTimer=null,homeDept='',managerDept='';const $=x=>document.getElementById(x),money=n=>'₹'+Number(n||0).toLocaleString('en-IN');function msg(x){$('msg').textContent=x}async function signin(){
+  let e=$('email').value.trim(),p=$('password').value;
+  if(!e||!p){msg('Enter email and password.');return}
+  msg('Signing in...');$('signInBtn').disabled=true;
+  try{
+    let r=await db.auth.signInWithPassword({email:e,password:p});
+    if(r.error){msg('Login failed: '+r.error.message);$('signInBtn').disabled=false;return}
+    if(!r.data?.session){msg('Login failed: Supabase did not create a session.');$('signInBtn').disabled=false;return}
+    msg('');$('signInBtn').disabled=false;
+  }catch(err){
+    msg('Login error: '+(err?.message||String(err)));$('signInBtn').disabled=false;
+  }
+}async function signout(){await db.auth.signOut()}db.auth.onAuthStateChange((_e,s)=>{
+  user=s?.user||null;
+  $('login').style.display=user?'none':'block';
+  $('app').style.display=user?'block':'none';
+  if(user)init();
+});
+window.addEventListener('error',e=>{
+  if(!user && e?.message) msg('Website error: '+e.message);
+});function bindHomeSearch(){
+  const el=$('homeSearch');
+  if(el&&!el.dataset.bound){
+    el.dataset.bound='1';
+    el.addEventListener('input',renderHomeResults);
+    el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();renderHomeResults();}});
+  }
+}
+function init(){bindHomeSearch();let y=new Date().getFullYear();$('year').innerHTML='';for(let i=2019;i<=y+5;i++)$('year').innerHTML+=`<option>${i}</option>`;loadMembers(true)}async function loadMembers(first=false){let r=await db.from('people').select('*').order('name');if(r.error)return alert(r.error.message);membersData=r.data;renderHome();if(!first){renderMembers();dashboardTotals()}}function renderHome(){loadHomeOverallTotals();
+  let groups={};
+  membersData.forEach(p=>{
+    let d=p.department||'Unassigned';
+    groups[d]=(groups[d]||0)+1;
+  });
+  let names=[...DEPARTMENTS,...Object.keys(groups).filter(d=>!DEPARTMENTS.includes(d)&&d!=='Unassigned')];
+  if(groups.Unassigned)names.push('Unassigned');
+
+  $('deptGrid').innerHTML=names.map(d=>{
+    const label=DEPARTMENT_LABELS[d]||d;
+    const href=DEPARTMENT_LINKS[d];
+    const count=`${groups[d]||0} member${(groups[d]||0)===1?'':'s'} · Click to Manage`;
+    const link=href?`<a class="deptExternal" href="${href}" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗</a>`:'';
+    return `<div class="card dept" onclick="chooseDepartment('${escAttr(d)}')">
+      <div class="deptIcon">🏢</div>
+      <div class="deptName">${esc(label)} ${link}</div>
+      <div class="deptCount">${count}</div>
+    </div>`;
+  }).join('');
+  renderHomeResults();
+}
+function chooseDepartment(d){managerDept=d;showManager();renderMembers();dashboardTotals()}async function loadHomeOverallTotals(){
+  // Home-page summary is intentionally ALL YEARS, independent of the selected year.
+  const r=await db.from('salary_records').select('payable,paid');
+  if(r.error){
+    console.error('Home overall totals:',r.error.message);
+    return;
+  }
+  const payable=r.data.reduce((sum,row)=>sum+(Number(row.payable)||0),0);
+  const paid=r.data.reduce((sum,row)=>sum+(Number(row.paid)||0),0);
+  const due=Math.max(0,payable-paid);
+
+  if($('homeAllPayable'))$('homeAllPayable').textContent=money(payable);
+  if($('homeAllPaid'))$('homeAllPaid').textContent=money(paid);
+  if($('homeAllDue'))$('homeAllDue').textContent=money(due);
+}
+
+
+function renderHomeResults(){
+  const input=$('homeSearch');
+  const box=$('homeResults');
+  if(!input||!box)return;
+
+  const q=String(input.value||'').trim().toLowerCase();
+  const activeDept=String(homeDept||'').trim();
+
+  const arr=membersData.filter(p=>{
+    const id=String(p.employee_id??'').toLowerCase();
+    const name=String(p.name??'').toLowerCase();
+    const role=String(p.role??'').toLowerCase();
+    const dept=String(p.department??'Unassigned');
+    const deptEnglish=dept.toLowerCase();
+    const deptBilingual=String(DEPARTMENT_LABELS[dept]??dept).toLowerCase();
+
+    const matchesDept=!activeDept || dept===activeDept;
+    const matchesSearch=!q ||
+      id.includes(q) ||
+      name.includes(q) ||
+      role.includes(q) ||
+      deptEnglish.includes(q) ||
+      deptBilingual.includes(q);
+
+    return matchesDept && matchesSearch;
+  });
+
+  // Do not show an empty result panel when there is no search/filter.
+  if(!q&&!activeDept){
+    box.style.display='none';
+    box.innerHTML='';
+    return;
+  }
+
+  const title=activeDept
+    ? (DEPARTMENT_LABELS[activeDept]||activeDept)
+    : `Search Results (${arr.length})`;
+
+  box.innerHTML=`
+    <div class="toolbar">
+      <h2>${esc(title)}</h2>
+      <button class="secondary" type="button" onclick="clearHomeFilter()">Clear</button>
+    </div>
+    ${arr.length ? arr.map(p=>`
+      <div class="result">
+        <div>
+          <b>${esc(p.employee_id||'No ID')} · ${esc(p.name||'')}</b>
+          <div class="mini">${esc(p.role||'No designation')} · ${esc(DEPARTMENT_LABELS[p.department]||p.department||'Unassigned')}</div>
+        </div>
+        <div class="nums">Payable <b id="hp-${p.id}">₹0</b></div>
+        <div class="nums">Paid <b id="ha-${p.id}">₹0</b></div>
+        <div class="nums due">Due <b id="hd-${p.id}">₹0</b></div>
+        <button class="secondary" type="button" onclick="openPerson('${p.id}')">Manage</button>
+      </div>
+    `).join('') : `
+      <div class="empty" style="padding:30px">
+        No members found for <b>${esc(q||activeDept)}</b>.
+      </div>
+    `}`;
+
+  // Force it visible after a search/filter.
+  box.style.display='block';
+  loadHomeTotals(arr);
+}
+async function loadHomeTotals(arr){let yr=+$('year').value;for(const p of arr){let r=await db.from('salary_records').select('payable,paid').eq('person_id',p.id).eq('year',yr);if(r.error)continue;let a=r.data.reduce((x,z)=>x+(+z.payable||0),0),b=r.data.reduce((x,z)=>x+(+z.paid||0),0);if($('hp-'+p.id)){$('hp-'+p.id).textContent=money(a);$('ha-'+p.id).textContent=money(b);$('hd-'+p.id).textContent=money(Math.max(0,a-b))}}}function clearHomeFilter(){homeDept='';$('homeSearch').value='';renderHomeResults()}function showHome(){$('manager').style.display='none';$('bulk').style.display='none';$('home').style.display='block';selected=null;managerDept='';renderHome()}function openPerson(id){showManager();selectMember(id)}function showManager(){$('home').style.display='none';$('bulk').style.display='none';$('manager').style.display='block';renderMembers();dashboardTotals()}function clearManagerDepartment(){managerDept='';renderMembers();dashboardTotals()}function renderMembers(){let q=$('search').value.toLowerCase(),arr=membersData.filter(x=>(!managerDept||((x.department||'Unassigned')===managerDept))&&(!q||String(x.employee_id||'').toLowerCase().includes(q)||x.name.toLowerCase().includes(q)||String(x.role||'').toLowerCase().includes(q)||String(x.department||'').toLowerCase().includes(q)));$('count').textContent=arr.length;$('managerTitle').textContent=managerDept?managerDept+' Department':'All Members';$('managerDeptNote').textContent=managerDept?`Managing ${arr.length} member${arr.length===1?'':'s'} in this department.`:'Manage members and monthly salary records.';$('members').innerHTML=arr.map(p=>`<div class="member ${selected?.id===p.id?'active':''}" onclick="selectMember('${p.id}')"><div class="membername">${esc(p.employee_id||'No ID')} · ${esc(p.name)}</div><div class="mini">${esc(p.role||'No designation')} · ${esc(p.department||'Unassigned')}</div><div class="mnums"><div>Payable<b id="p-${p.id}">₹0</b></div><div>Paid<b id="a-${p.id}">₹0</b></div><div class="d">Due<b id="d-${p.id}">₹0</b></div></div></div>`).join('');loadMemberTotals(arr)}async function loadMemberTotals(arr){let yr=+$('year').value;for(const p of arr){let r=await db.from('salary_records').select('payable,paid').eq('person_id',p.id).eq('year',yr);if(r.error)continue;let a=r.data.reduce((x,z)=>x+(+z.payable||0),0),b=r.data.reduce((x,z)=>x+(+z.paid||0),0);if($('p-'+p.id)){$('p-'+p.id).textContent=money(a);$('a-'+p.id).textContent=money(b);$('d-'+p.id).textContent=money(Math.max(0,a-b))}}}async function dashboardTotals(){let ids=managerDept?membersData.filter(p=>(p.department||'Unassigned')===managerDept).map(p=>p.id):null;let q=db.from('salary_records').select('payable,paid').eq('year',+$('year').value);if(ids)q=q.in('person_id',ids);let r=await q;if(r.error)return;let p=r.data.reduce((x,z)=>x+(+z.payable||0),0),a=r.data.reduce((x,z)=>x+(+z.paid||0),0);$('allPayable').textContent=money(p);$('allPaid').textContent=money(a);$('allDue').textContent=money(Math.max(0,p-a))}function selectMember(id){selected=membersData.find(x=>x.id===id);$('empty').style.display='none';$('detail').style.display='block';$('personName').textContent=selected.name;$('personEmployeeId').textContent='Employee ID: '+(selected.employee_id||'Not assigned');$('personRole').textContent=selected.role||'No designation';$('personDept').textContent='Department: '+(selected.department||'Unassigned');renderMembers();loadRecords()}async function loadRecords(){if(!selected)return;let r=await db.from('salary_records').select('*').eq('person_id',selected.id).eq('year',+$('year').value);if(r.error)return alert(r.error.message);let map=new Map(r.data.map(x=>[x.month,x]));$('rows').innerHTML=months.map((m,i)=>{let x=map.get(i+1)||{};return `<tr><td>${m}</td><td><input class="payable" type="number" min="0" value="${x.payable||0}"></td><td><input class="paid" type="number" min="0" value="${x.paid||0}"></td><td><input class="date" type="date" value="${x.payment_date||''}"></td><td class="duecell">₹0</td></tr>`}).join('');calculate()}function calculate(){let p=0,a=0;document.querySelectorAll('#rows tr').forEach(t=>{let x=+t.querySelector('.payable').value||0,y=+t.querySelector('.paid').value||0;p+=x;a+=y;let d=Math.max(0,x-y),c=t.querySelector('.duecell');c.textContent=money(d);c.className='duecell '+(d?'pending':'zero')});let d=Math.max(0,p-a);$('tp').textContent=$('sp').textContent=money(p);$('ta').textContent=$('sa').textContent=money(a);$('td').textContent=$('sd').textContent=money(d)}function scheduleAutoSave(){calculate();$('saveStatus').textContent='Saving...';clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveRecords(true),900)}async function saveRecords(silent=false){if(!selected)return;$('saveStatus').textContent='Saving...';let yr=+$('year').value,d=[];document.querySelectorAll('#rows tr').forEach((t,i)=>d.push({person_id:selected.id,year:yr,month:i+1,payable:+t.querySelector('.payable').value||0,paid:+t.querySelector('.paid').value||0,payment_date:t.querySelector('.date').value||null}));let r=await db.from('salary_records').upsert(d,{onConflict:'person_id,year,month'});if(r.error){$('saveStatus').textContent='Save failed';if(!silent)alert(r.error.message);return}$('saveStatus').textContent='✓ Saved automatically';await dashboardTotals();renderMembers()}function yearChanged(){loadMembers();loadHomeOverallTotals();if(selected)loadRecords()}function openModal(){$('modal').style.display='grid'}function closeModal(){$('modal').style.display='none'}const DESIGNATIONS = ["Chief Municipal Officer", "Accountant", "Cashier", "Assistant Grade-1", "Assistant Grade-2", "Assistant Grade-3", "Peon (Regular and Contract)", "Watchman", "Security Guard (Contract)", "Revenue Inspector", "Revenue Sub-Inspector", "Assistant Revenue Inspector", "Sanitation Inspector", "Sanitation Sub-Inspector", "Sanitation Supervisor", "Sanitation Guard (Regular and Contract)", "Sanitation Guard (Contract)", "Sub-Engineer", "Timekeeper", "Gardener (Trained)", "Sub-Engineer (EM)", "Plumber Fitter", "Heavy Vehicle Driver (Category A)", "Heavy Vehicle Driver (Category B) – Regular and Contractual", "Electrician", "Chief Fireman", "Fireman", "Community Organizer", "Assistant Community Organizer"];
+async function addMember(){let id=$('employeeId').value.trim(),n=$('name').value.trim(),r=$('role').value.trim(),d=$('department').value;if(!id)return alert('Enter an Employee ID.');if(!n)return alert('Enter a name.');let existing=await db.from('people').select('id').eq('employee_id',id).maybeSingle();if(existing.data)return alert('That Employee ID already exists.');let x=await db.from('people').insert({employee_id:id,name:n,role:r,department:d||null}).select().single();if(x.error)return alert(x.error.message);closeModal();$('employeeId').value='';$('name').value='';$('role').value='';$('department').value='';await loadMembers();showManager();selectMember(x.data.id)}
+function showBulk(){
+  $('home').style.display='none';
+  $('manager').style.display='none';
+  $('bulk').style.display='block';
+  $('bulkMonth').innerHTML=months.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
+  let now=new Date().getFullYear();
+  $('bulkYear').innerHTML='';
+  for(let i=2019;i<=now+5;i++) $('bulkYear').innerHTML+=`<option>${i}</option>`;
+  $('bulkYear').value=$('year').value||now;
+  let deps=[...DEPARTMENTS,...Object.keys(membersData.reduce((a,p)=>{if(p.department&&!DEPARTMENTS.includes(p.department))a[p.department]=1;return a},{}))];
+  $('bulkDepartment').innerHTML='<option value="__ALL__">All Departments</option>'+deps.map(d=>`<option>${esc(d)}</option>`).join('');
+  $('bulkDepartment').value=managerDept||'__ALL__';
+  renderBulkMembers();
+}
+function renderBulkMembers(){
+  let dep=$('bulkDepartment').value;
+  let arr=membersData.filter(p=>dep==='__ALL__'||(p.department||'Unassigned')===dep);
+  $('bulkRows').innerHTML=arr.map(p=>`<tr data-id="${p.id}">
+    <td class="bulk-check"><input class="bulkSel" type="checkbox" checked></td>
+    <td><b>${esc(p.name)}</b></td>
+    <td>${esc(p.role||'No designation')}</td>
+    <td>${esc(p.department||'Unassigned')}</td>
+    <td><input class="bulkAmount" type="number" min="0" value=""></td>
+    <td class="bulkPaid">₹0</td>
+    <td class="bulkDue">₹0</td>
+  </tr>`).join('');
+  loadBulkExisting();
+}
+async function loadBulkExisting(){
+  let yr=+$('bulkYear').value, mon=+$('bulkMonth').value;
+  let rows=[...document.querySelectorAll('#bulkRows tr')];
+  for(const tr of rows){
+    let id=tr.dataset.id;
+    let r=await db.from('salary_records').select('payable,paid').eq('person_id',id).eq('year',yr).eq('month',mon).maybeSingle();
+    if(r.data){
+      tr.querySelector('.bulkAmount').value=r.data.payable||0;
+      tr.querySelector('.bulkPaid').textContent=money(r.data.paid||0);
+      tr.querySelector('.bulkDue').textContent=money(Math.max(0,(+r.data.payable||0)-(+r.data.paid||0)));
+    }
+  }
+}
+function selectAllBulk(v){document.querySelectorAll('.bulkSel').forEach(x=>x.checked=v);$('bulkAll').checked=v}
+function applyBulkPayable(){
+  let value=+$('bulkPayable').value||0,count=0;
+  document.querySelectorAll('#bulkRows tr').forEach(tr=>{
+    if(tr.querySelector('.bulkSel').checked){tr.querySelector('.bulkAmount').value=value;count++}
+  });
+  $('bulkStatus').textContent=`Applied to ${count} member${count===1?'':'s'}. Review before saving.`;
+  updateBulkDues();
+}
+function updateBulkDues(){
+  document.querySelectorAll('#bulkRows tr').forEach(tr=>{
+    let p=+tr.querySelector('.bulkAmount').value||0;
+    let paid=parseFloat(tr.querySelector('.bulkPaid').textContent.replace(/[₹,]/g,''))||0;
+    tr.querySelector('.bulkDue').textContent=money(Math.max(0,p-paid));
+  });
+}
+async function saveBulk(){
+  let yr=+$('bulkYear').value,mon=+$('bulkMonth').value,d=[];
+  document.querySelectorAll('#bulkRows tr').forEach(tr=>{
+    if(!tr.querySelector('.bulkSel').checked)return;
+    d.push({person_id:tr.dataset.id,year:yr,month:mon,payable:+tr.querySelector('.bulkAmount').value||0});
+  });
+  if(!d.length)return alert('Select at least one member.');
+  $('bulkStatus').textContent='Saving...';
+  for(const x of d){
+    let old=await db.from('salary_records').select('paid,payment_date').eq('person_id',x.person_id).eq('year',yr).eq('month',mon).maybeSingle();
+    x.paid=old.data?.paid||0;
+    x.payment_date=old.data?.payment_date||null;
+  }
+  let r=await db.from('salary_records').upsert(d,{onConflict:'person_id,year,month'});
+  if(r.error){$('bulkStatus').textContent='Save failed';return alert(r.error.message)}
+  $('bulkStatus').textContent=`✓ ${d.length} member${d.length===1?'':'s'} saved online`;
+  await loadMembers();
+  renderBulkMembers();
+}
+
+let importedRows=[];
+
+function openClearData(){
+  $('clearDataModal').style.display='grid';
+  $('clearDataStatus').textContent='';
+  $('confirmClearBtn').disabled=false;
+}
+function closeClearData(){
+  $('clearDataModal').style.display='none';
+}
+async function confirmClearData(){
+  if(!confirm('FINAL WARNING: Delete ALL members and ALL salary records? This cannot be undone.')) return;
+  $('confirmClearBtn').disabled=true;
+  $('clearDataStatus').textContent='Deleting all data...';
+  try{
+    // Delete salary records first because they reference members.
+    let a=await db.from('salary_records').delete().not('id','is',null);
+    if(a.error) throw a.error;
+    let b=await db.from('people').delete().not('id','is',null);
+    if(b.error) throw b.error;
+    membersData=[];
+    selected=null;
+    managerDept='';
+    closeClearData();
+    await loadMembers();
+    alert('All member and salary data has been deleted.');
+  }catch(e){
+    $('clearDataStatus').textContent='Could not clear the data: '+(e?.message||String(e));
+    $('confirmClearBtn').disabled=false;
+  }
+}
+
+function openImport(){$('importModal').style.display='grid';$('importModal').classList.add('open');$('importStatus').textContent='';$('importPreview').style.display='none';$('confirmImportBtn').style.display='none';$('excelFile').value='';importedRows=[]}
+function closeImport(){$('importModal').style.display='none';$('importModal').classList.remove('open')}
+function normalizeHeader(x){return String(x??'').replace(/^\\uFEFF/,'').trim().toLowerCase().replace(/[^a-z0-9]/g,'')}
+function findHeader(obj,names){
+  let keys=Object.keys(obj);
+  for(const n of names){
+    let target=normalizeHeader(n);
+    let k=keys.find(x=>normalizeHeader(x)===target);
+    if(k)return k;
+  }
+  return null;
+}
+async function previewExcel(){
+  let f=$('excelFile').files[0]; if(!f)return;
+  try{
+    let buf=await f.arrayBuffer(),wb=XLSX.read(buf,{type:'array',cellDates:true});
+    let ws=wb.Sheets[wb.SheetNames[0]];
+    let matrix=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true});
+    if(!matrix.length){$('importStatus').textContent='No rows found in the Excel file.';return}
+
+    const norm=x=>String(x??'').replace(/^\uFEFF/,'').trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+    const aliases={
+      id:['employeeid','employee number','employeenumber','empid','employeecode','id'],
+      name:['name','membername','employeename','fullnameofbeneficiary','fullname'],
+      role:['designation','role','jobtitle'],
+      dept:['department','dept'],
+      payable:['payable','payableamount','salary','monthlysalary','amount'],
+      paid:['paid','paidamount'],
+      date:['paymentdate','paiddate','date'],
+      month:['month','salarymonth']
+    };
+    const has=(row, list)=>list.some(a=>norm(a)===norm(row));
+
+    // First try to locate a real header row anywhere in the first 20 rows.
+    let headerIndex=-1;
+    for(let i=0;i<Math.min(20,matrix.length);i++){
+      let h=matrix[i].map(norm);
+      if(h.some(x=>['name','membername','employeename','fullnameofbeneficiary','fullname'].includes(x)) ||
+         h.some(x=>['employeenumber','employeeid','empid','employeecode'].includes(x))){
+        headerIndex=i; break;
+      }
+    }
+
+    let raw=[];
+    if(headerIndex>=0){
+      let headers=matrix[headerIndex].map(x=>String(x??'').trim());
+      raw=matrix.slice(headerIndex+1).filter(row=>row.some(v=>String(v??'').trim())).map(row=>{
+        let o={};headers.forEach((h,i)=>{if(h)o[h]=row[i]??''});return o;
+      });
+    }else{
+      // Exact fallback for the user's sample:
+      // Employee Number | Full Name of Beneficiary | Month | Amount
+      let data=matrix.filter(row=>row.some(v=>String(v??'').trim()));
+      if(data.length>=2){
+        // Skip a possible title row and use the first row containing a plausible
+        // employee number + name pair.
+        let first=-1;
+        for(let i=0;i<Math.min(data.length,10);i++){
+          let a=String(data[i][0]??'').trim(), b=String(data[i][1]??'').trim();
+          if(a && b && (/\d/.test(a) || /^emp/i.test(a))){first=i;break}
+        }
+        if(first>=0){
+          raw=data.slice(first).map(r=>({
+            '__Employee Number':r[0]??'',
+            '__Full Name of Beneficiary':r[1]??'',
+            '__Month':r[2]??'',
+            '__Amount':r[3]??''
+          }));
+        }
+      }
+    }
+
+    if(!raw.length){
+      $('importStatus').textContent='I could not detect the employee table. Your sample format should be: Employee Number | Full Name of Beneficiary | Month | Amount.';
+      return;
+    }
+
+    function pick(r, keys){
+      let actual=Object.keys(r);
+      for(const k of keys){
+        let found=actual.find(a=>norm(a)===norm(k));
+        if(found!==undefined)return r[found];
+      }
+      return '';
+    }
+
+    importedRows=raw.map(r=>({
+      employee_id:String(pick(r,['Employee ID','Employee Id','Employee Number','Emp ID','Employee Code','ID','__Employee Number'])??'').trim(),
+      name:String(pick(r,['Name','Member Name','Employee Name','Full Name of Beneficiary','Full Name','__Full Name of Beneficiary'])??'').trim(),
+      role:String(pick(r,['Designation','Role','Job Title'])??'').trim(),
+      department:String(pick(r,['Department','Dept'])??'').trim(),
+      payable:pick(r,['Payable','Payable Amount','Salary','Monthly Salary','Amount','__Amount']),
+      paid:pick(r,['Paid','Paid Amount']),
+      payment_date:pick(r,['Payment Date','Paid Date','Date']),
+      source_month:pick(r,['Month','Salary Month','__Month'])
+    })).filter(x=>x.name);
+
+    if(!importedRows.length){
+      $('importStatus').textContent='The employee rows were found, but no names could be read. Expected column: Full Name of Beneficiary.';
+      return;
+    }
+    if(importedRows.some(x=>!x.employee_id)){
+      $('importStatus').textContent='Some rows have no Employee Number. For this file, Employee Number is used as Employee ID.';
+      return;
+    }
+
+    let shown=importedRows.slice(0,100);
+    $('importPreview').style.display='block';
+    $('importPreview').innerHTML='<table><thead><tr><th>Employee ID</th><th>Name</th><th>Designation</th><th>Department</th><th>Payable</th><th>Paid</th><th>Month</th></tr></thead><tbody>'+
+      shown.map(x=>`<tr><td>${esc(x.employee_id)}</td><td>${esc(x.name)}</td><td>${esc(x.role)}</td><td>${esc(x.department)}</td><td>${money(parseMoney(x.payable))}</td><td>${money(parseMoney(x.paid))}</td><td>${esc(x.source_month)}</td></tr>`).join('')+
+      '</tbody></table>';
+    $('importStatus').textContent=`✓ Found ${importedRows.length} employee${importedRows.length===1?'':'s'}. Nothing is saved until you click Confirm Import.`;
+    $('confirmImportBtn').style.display='inline-block';
+  }catch(e){
+    console.error(e);
+    $('importStatus').textContent='Could not read this Excel file: '+(e?.message||String(e));
+  }
+}
+function parseMoney(v){if(typeof v==='number')return v;let n=String(v??'').replace(/[₹,\s]/g,'');return parseFloat(n)||0}
+function excelDate(v){
+  if(!v)return null;
+  if(v instanceof Date)return v.toISOString().slice(0,10);
+  if(typeof v==='number'){let d=XLSX.SSF.parse_date_code(v);if(d)return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`}
+  let d=new Date(v);return isNaN(d)?null:d.toISOString().slice(0,10)
+}
+async function confirmImport(){
+  if(!importedRows.length)return;
+  if(!user?.id){$('importStatus').textContent='Please sign in before importing.';return;}
+  $('confirmImportBtn').disabled=true;
+  $('importStatus').textContent='Importing...';
+  let created=0,updated=0,salarySaved=0;
+  try{
+    for(let i=0;i<importedRows.length;i++){
+      const x=importedRows[i];
+      const employeeId=String(x.employee_id??'').trim();
+      if(!employeeId)throw new Error(`Row ${i+1}: Missing Employee ID for "${x.name}".`);
+
+      const dept=normalizeDepartment(x.department);
+      if(x.department && !dept){
+        throw new Error(`Row ${i+1} (${employeeId}): Unknown department "${x.department}". Use one of the existing 11 departments.`);
+      }
+
+      // Employee IDs are unique PER CLIENT ACCOUNT. Find the employee visible to
+      // this logged-in account, then update it; otherwise create it under this account.
+      let lookup=await db.from('people').select('*').eq('employee_id',employeeId).limit(1);
+      if(lookup.error)throw new Error(`Row ${i+1} (${employeeId}): Could not check employee: ${lookup.error.message}`);
+
+      let person=lookup.data?.[0]||null;
+      const payload={
+        employee_id:employeeId,
+        user_id:user.id,
+        name:x.name||person?.name||'',
+        role:x.role||person?.role||null,
+        department:dept||person?.department||null
+      };
+
+      if(person){
+        const upd=await db.from('people').update(payload).eq('id',person.id).select().single();
+        if(upd.error)throw new Error(`Row ${i+1} (${employeeId}): ${upd.error.message}`);
+        person=upd.data;
+        updated++;
+      }else{
+        let ins=await db.from('people').insert(payload).select().single();
+        if(ins.error){
+          // If the employee was inserted by another process after our lookup,
+          // fetch it and update it rather than failing the whole import.
+          if(String(ins.error.message||'').toLowerCase().includes('duplicate')){
+            const retry=await db.from('people').select('*').eq('employee_id',employeeId).limit(1);
+            if(retry.error||!retry.data?.length){
+              throw new Error(`Row ${i+1} (${employeeId}): ${ins.error.message}`);
+            }
+            const upd=await db.from('people').update(payload).eq('id',retry.data[0].id).select().single();
+            if(upd.error)throw new Error(`Row ${i+1} (${employeeId}): ${upd.error.message}`);
+            person=upd.data;
+            updated++;
+          }else{
+            throw new Error(`Row ${i+1} (${employeeId}): ${ins.error.message}`);
+          }
+        }else{
+          person=ins.data;
+          created++;
+        }
+      }
+
+      // Salary records: avoid ON CONFLICT as well. Find the exact employee,
+      // year and month first, then UPDATE or INSERT. This works even when the
+      // database does not expose a composite unique constraint.
+      let payable=parseMoney(x.payable),paid=parseMoney(x.paid);
+      let hasSalary=x.payable!==''||x.paid!=='';
+      if(hasSalary){
+        let year=+$('bulkYear').value||2026;
+        let month=+$('bulkMonth').value||1;
+
+        if(x.source_month){
+          const parsed=parseExcelMonthYear(x.source_month);
+          if(parsed){year=parsed.year;month=parsed.month;}
+          else throw new Error(`Row ${i+1} (${employeeId}): Could not understand Month "${x.source_month}". Use formats such as Mar-25 or Apr-25.`);
+        }
+
+        const salaryPayload={
+          person_id:person.id,
+          year,
+          month,
+          payable,
+          paid,
+          payment_date:excelDate(x.payment_date)
+        };
+
+        const existingSalary=await db.from('salary_records')
+          .select('id')
+          .eq('person_id',person.id)
+          .eq('year',year)
+          .eq('month',month)
+          .limit(1);
+
+        if(existingSalary.error){
+          throw new Error(`Row ${i+1} (${employeeId}): Could not check ${month}/${year} salary: ${existingSalary.error.message}`);
+        }
+
+        if(existingSalary.data?.length){
+          const su=await db.from('salary_records')
+            .update(salaryPayload)
+            .eq('id',existingSalary.data[0].id);
+          if(su.error)throw new Error(`Row ${i+1} (${employeeId}): ${su.error.message}`);
+        }else{
+          const si=await db.from('salary_records').insert(salaryPayload);
+          if(si.error){
+            // Another copy may have been inserted between the check and insert.
+            // Re-read the exact record and update it if found.
+            const retry=await db.from('salary_records').select('id')
+              .eq('person_id',person.id).eq('year',year).eq('month',month).limit(1);
+            if(retry.data?.length){
+              const su=await db.from('salary_records').update(salaryPayload).eq('id',retry.data[0].id);
+              if(su.error)throw new Error(`Row ${i+1} (${employeeId}): ${su.error.message}`);
+            }else{
+              throw new Error(`Row ${i+1} (${employeeId}): ${si.error.message}`);
+            }
+          }
+        }
+        salarySaved++;
+      }
+    }
+
+    await loadMembers();
+    $('importStatus').textContent=`✓ Import complete: ${created} added, ${updated} updated, ${salarySaved} salary record${salarySaved===1?'':'s'} saved.`;
+    $('confirmImportBtn').style.display='none';
+    setTimeout(closeImport,1200);
+  }catch(e){
+    console.error(e);
+    $('importStatus').textContent='Import stopped: '+(e?.message||String(e));
+    $('confirmImportBtn').disabled=false;
+  }
+}
+
+function normalizeDepartment(v){
+  const raw=String(v??'').trim();
+  if(!raw)return '';
+  const key=raw.normalize('NFC').toLowerCase().replace(/[–—]/g,'-').replace(/\s+/g,' ').trim();
+  const aliases={
+    'administration & establishment':'Administration & Establishment',
+    'प्रशासनिक एवं स्थापना विभाग (administration & establishment)':'Administration & Establishment',
+    'प्रशासनिक एवं स्थापना विभाग':'Administration & Establishment',
+    'राजस्व विभाग (revenue)':'Revenue',
+    'राजस्व विभाग':'Revenue',
+    'लेखा एवं वित्त विभाग (accounts & finance)':'Accounts & Finance',
+    'लेखा एवं वित्त विभाग':'Accounts & Finance',
+    'लोक निर्माण विभाग (public works - pwd)':'Public Works - PWD',
+    'लोक निर्माण विभाग':'Public Works - PWD',
+    'स्वास्थ्य एवं स्वच्छता विभाग (health & sanitation)':'Health & Sanitation',
+    'स्वास्थ्य एवं स्वच्छता विभाग':'Health & Sanitation',
+    'जल प्रदाय विभाग (water supply)':'Water Supply',
+    'जल प्रदाय विभाग':'Water Supply',
+    'योजना एवं भवन अनुमति विभाग (town planning & building permission)':'Town Planning & Building Permission',
+    'योजना एवं भवन अनुमति विभाग':'Town Planning & Building Permission',
+    'विद्युत विभाग (electrical)':'Electrical',
+    'विद्युत विभाग':'Electrical',
+    'ई-गवर्नेंस एवं आईटी विभाग (e-governance & it)':'E-Governance & IT',
+    'ई-गवर्नेंस एवं आईटी विभाग':'E-Governance & IT',
+    'कर्मशाला विभाग (workshop department)':'Workshop Department',
+    'कर्मशाला विभाग':'Workshop Department',
+    'जन कल्याण एवं जनसुनवाई प्रकोष्ठ (public welfare & public grievance redressal department)':'Public Welfare & Public Grievance Redressal Department',
+    'जन कल्याण एवं जनसुनवाई प्रकोष्ठ':'Public Welfare & Public Grievance Redressal Department',
+    
+    'administration and establishment':'Administration & Establishment',
+    'revenue':'Revenue',
+    'accounts & finance':'Accounts & Finance',
+    'accounts and finance':'Accounts & Finance',
+    'public works - pwd':'Public Works - PWD',
+    'public works':'Public Works - PWD',
+    'pwd':'Public Works - PWD',
+    'health & sanitation':'Health & Sanitation',
+    'health and sanitation':'Health & Sanitation',
+    'water supply':'Water Supply',
+    'town planning & building permission':'Town Planning & Building Permission',
+    'town planning and building permission':'Town Planning & Building Permission',
+    'electrical':'Electrical',
+    'e-governance & it':'E-Governance & IT',
+    'e-governance and it':'E-Governance & IT',
+    'e governance & it':'E-Governance & IT',
+    'e governance and it':'E-Governance & IT',
+    'workshop department':'Workshop Department',
+    'workshop':'Workshop Department',
+    'public welfare & public grievance redressal department':'Public Welfare & Public Grievance Redressal Department',
+    'public welfare and public grievance redressal department':'Public Welfare & Public Grievance Redressal Department'
+  };
+  if(aliases[key])return aliases[key];
+  const exact=DEPARTMENTS.find(d=>d.toLowerCase()===key);
+  return exact||null;
+}
+
+function monthYearLabel(year,month){
+  return new Date(Number(year),Number(month)-1,1).toLocaleString('en-US',{month:'long',year:'numeric'});
+}
+function parseExcelMonthYear(v){
+  // IMPORTANT: ExcelJS/SheetJS may expose a true Date object.
+  // Never pass an Excel date through new Date(string) first, because timezone
+  // conversion can shift the month.
+  if(v instanceof Date && !isNaN(v.getTime())){
+    return {year:v.getFullYear(), month:v.getMonth()+1};
+  }
+
+  // SheetJS can return an Excel serial number when cellDates is false.
+  if(typeof v==='number' && isFinite(v)){
+    try{
+      const d=XLSX.SSF.parse_date_code(v);
+      if(d && d.y && d.m) return {year:Number(d.y), month:Number(d.m)};
+    }catch(e){}
+  }
+
+  const t=String(v??'').trim();
+  if(!t)return null;
+
+  // Explicit month names: Mar-25, Apr-25, March-2025, April 2025, etc.
+  const months={
+    jan:1,january:1,feb:2,february:2,mar:3,march:3,
+    apr:4,april:4,may:5,jun:6,june:6,jul:7,july:7,
+    aug:8,august:8,sep:9,sept:9,september:9,
+    oct:10,october:10,nov:11,november:11,dec:12,december:12
+  };
+  let m=t.match(/^([A-Za-z]{3,9})\s*[-\/ ]\s*(\d{2}|\d{4})$/);
+  if(m){
+    const month=months[m[1].toLowerCase()];
+    if(month){
+      let year=Number(m[2]);
+      if(year<100)year+=2000;
+      return {year,month};
+    }
+  }
+
+  // ISO year-month: 2025-03 / 2025-04, optionally with a day.
+  m=t.match(/^(20\d{2})[-\/.](0?[1-9]|1[0-2])(?:[-\/.]\d{1,2})?(?:T.*)?$/);
+  if(m)return {year:Number(m[1]),month:Number(m[2])};
+
+  // Month-year numeric: 03-2025 / 04-2025.
+  m=t.match(/^(0?[1-9]|1[0-2])[-\/.](20\d{2})$/);
+  if(m)return {year:Number(m[2]),month:Number(m[1])};
+
+  return null;
+}
+function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}function escAttr(s){return esc(s).replace(/'/g,'&#039;')}document.addEventListener('input',e=>{if(e.target.matches('.payable,.paid,.date')){calculate();scheduleAutoSave()}if(e.target.matches('.bulkAmount'))updateBulkDues()});document.addEventListener('change',e=>{if(e.target.matches('#bulkMonth,#bulkYear'))renderBulkMembers()})</script></body></html>
