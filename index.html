@@ -15,8 +15,45 @@
     <div class="summaryBox due"><span>Total Due</span><strong id="homeAllDue">₹0</strong></div>
   </div>
 </div>
-<div class="homeTop"><input id="homeSearch" class="bigsearch" placeholder="🔍 Search by name, designation, or department..." oninput="renderHomeResults()" autocomplete="off"></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px">
-  <button class="primary" onclick="showEditMembers()">✏️ Edit Members</button>
+<div id="loggedInAccount" class="mini" style="margin-bottom:10px"></div><div class="homeTop"><input id="homeSearch" class="bigsearch" placeholder="🔍 Search by name, designation, or department..." oninput="renderHomeResults()" autocomplete="off"></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px">
+  <button class="primary" onclick="showEditMembers()">✏️ Edit Members</button> <button class="secondary" onclick="toggleBackupPanel()">🛡️ Backup & Restore</button> <button class="secondary" onclick="openImport()">📥 Import Excel</button> <button class="secondary" onclick="toggleExportPanel()">📊 Export Excel</button>
+<div id="exportPanel" class="card" style="display:none;margin-top:12px;text-align:left">
+<h3 style="margin-top:0">Export Selected Data</h3>
+<div class="mini" style="margin-bottom:10px">Select the columns and month range to export.</div>
+<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+<label><input type="checkbox" class="exportCol" value="Employee ID" checked> Employee ID</label>
+<label><input type="checkbox" class="exportCol" value="Employee Name" checked> Employee Name</label>
+<label><input type="checkbox" class="exportCol" value="Designation" checked> Designation</label>
+<label><input type="checkbox" class="exportCol" value="Department" checked> Department</label>
+<label><input type="checkbox" class="exportCol" value="Month" checked> Month</label>
+<label><input type="checkbox" class="exportCol" value="Year" checked> Year</label>
+<label><input type="checkbox" class="exportCol" value="Payable Amount" checked> Payable Amount</label>
+<label><input type="checkbox" class="exportCol" value="Paid Amount" checked> Paid Amount</label>
+<label><input type="checkbox" class="exportCol" value="Due" checked> Due</label>
+<label><input type="checkbox" class="exportCol" value="Payment Date" checked> Payment Date</label>
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+<label>From <input id="exportFrom" type="month"></label>
+<label>To <input id="exportTo" type="month"></label>
+<button type="button" class="secondary" onclick="selectAllExportCols(true)">Select All</button>
+<button type="button" class="secondary" onclick="selectAllExportCols(false)">Clear All</button>
+<button type="button" class="primary" onclick="exportSalaryExcel()">⬇️ Export Selected</button>
+</div>
+</div><div id="backupPanel" class="card" style="display:none;margin-top:12px;text-align:left">
+<h3 style="margin-top:0">🛡️ Backup & Restore</h3>
+<div class="mini" style="margin-bottom:12px">
+  Create a complete backup of this account's members and salary records, or restore a previous backup.
+  Backups are account-specific.
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+  <button type="button" class="primary" onclick="createFullBackup()">⬇️ Download Backup</button>
+  <label class="secondary" style="display:inline-block;padding:10px 14px;cursor:pointer">
+    ⬆️ Restore Backup
+    <input id="restoreBackupFile" type="file" accept=".json" style="display:none" onchange="restoreFullBackup()">
+  </label>
+</div>
+<div id="backupStatus" class="msg" style="margin-top:10px"></div>
+</div>
 </div><div id="homeResults" class="homeResultsFirst card results" style="display:none"></div><h2 class="sectionTitle">Departments</h2><div id="deptGrid" class="deptgrid"></div></section>
 <section id="editMembersPage" style="display:none">
   <div style="margin-bottom:15px"><button class="secondary" onclick="showHome()">← Home</button></div>
@@ -85,7 +122,7 @@
 <div id="importModal" class="modal"><div class="card modalbox" style="width:min(900px,95%)">
   <h2>Import Excel</h2>
   <p class="mini">Upload Excel/CSV with columns such as Employee ID, Month, Payable, Paid. For existing employees, Employee ID is the key; Name, Designation and Department are optional. The importer can ignore title/blank rows above the table. The file is previewed before anything is saved.</p>
-  <input id="excelFile" type="file" accept=".xlsx,.xls,.csv" onchange="previewExcel()">
+  <div class="mini" style="margin-bottom:8px">Preview → Confirm Import → Process</div><input id="excelFile" type="file" accept=".xlsx,.xls,.csv" onchange="previewExcel()">
   <div id="importStatus" class="msg" style="color:#727b8f;margin-top:8px"></div>
   <div id="importPreview" class="tablewrap" style="display:none;max-height:380px"></div>
   <div class="actions">
@@ -111,7 +148,8 @@
     <button onclick="closeModal()">Cancel</button>
     <button id="memberSaveBtn" class="primary" onclick="saveMemberForm()">Add Member</button>
   </div>
-</div></div><script>const DEPARTMENTS=["Administration & Establishment","Revenue","Accounts & Finance","Public Works - PWD","Health & Sanitation","Water Supply","Town Planning & Building Permission","Electrical","E-Governance & IT","Workshop Department","Public Welfare & Public Grievance Redressal Department"];
+</div></div><script>const DESIGNATIONS=["Chief Municipal Officer", "Accountant", "Cashier", "Assistant Grade-1", "Assistant Grade-2", "Assistant Grade-3", "Peon (Regular and Contract)", "Watchman", "Security Guard (Contract)", "Revenue Inspector", "Revenue Sub-Inspector", "Assistant Revenue Inspector", "Sanitation Inspector", "Sanitation Sub-Inspector", "Sanitation Supervisor", "Sanitation Guard (Regular and Contract)", "Sanitation Guard (Contract)", "Sub-Engineer", "Timekeeper", "Gardener (Trained)", "Sub-Engineer (EM)", "Plumber Fitter", "Heavy Vehicle Driver (Category A)", "Heavy Vehicle Driver (Category B) – Regular and Contractual", "Electrician", "Chief Fireman", "Fireman", "Community Organizer", "Assistant Community Organizer"];
+const DEPARTMENTS=["Administration & Establishment","Revenue","Accounts & Finance","Public Works - PWD","Health & Sanitation","Water Supply","Town Planning & Building Permission","Electrical","E-Governance & IT","Workshop Department","Public Welfare & Public Grievance Redressal Department"];
 const DEPARTMENT_LABELS={
 "Administration & Establishment":"प्रशासनिक एवं स्थापना विभाग (Administration & Establishment)",
 "Revenue":"राजस्व विभाग (Revenue)",
@@ -129,24 +167,115 @@ const DEPARTMENT_LINKS={
 "Health & Sanitation":"https://npnainpur.mp-np.in/",
 "Water Supply":"https://npnainpur.mp-np.in/",
 "Town Planning & Building Permission":"https://nagarpalikakhargone.in/"
-};const SUPABASE_URL='https://ryqfahoiedgdpbbuuknb.supabase.co';const SUPABASE_ANON_KEY='sb_publishable_ydyMbJCC-U5m4W_vXh6HLg_6yngf3Jf';const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];let user=null,membersData=[],selected=null,saveTimer=null,homeDept='',managerDept='';const $=x=>document.getElementById(x),money=n=>'₹'+Number(n||0).toLocaleString('en-IN');function msg(x){$('msg').textContent=x}async function signin(){
-  let e=$('email').value.trim(),p=$('password').value;
+};const SUPABASE_URL='https://ryqfahoiedgdpbbuuknb.supabase.co';const SUPABASE_ANON_KEY='sb_publishable_ydyMbJCC-U5m4W_vXh6HLg_6yngf3Jf';const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];let user=null,membersData=[],selected=null,saveTimer=null,homeDept='',managerDept='';const $=x=>document.getElementById(x),money=n=>'₹'+Number(n||0).toLocaleString('en-IN');function msg(x){$('msg').textContent=x}let authGeneration=0;
+
+async function signin(){
+  const e=$('email').value.trim().toLowerCase();
+  const p=$('password').value;
   if(!e||!p){msg('Enter email and password.');return}
-  msg('Signing in...');membersData=[];selected=null;renderHome();$('signInBtn').disabled=true;
+
+  const btn=$('signInBtn');
+  btn.disabled=true;
+  msg('Signing in...');
+
+  const generation=++authGeneration;
   try{
-    let r=await db.auth.signInWithPassword({email:e,password:p});
-    if(r.error){msg('Login failed: '+r.error.message);$('signInBtn').disabled=false;return}
-    if(!r.data?.session){msg('Login failed: Supabase did not create a session.');$('signInBtn').disabled=false;return}
-    msg('');$('signInBtn').disabled=false;
+    // Fully clear any previous account from memory/UI before switching.
+    user=null;
+    membersData=[];
+    selected=null;
+    managerDept='';
+    homeDept='';
+    setAccountUI();
+
+    const r=await db.auth.signInWithPassword({email:e,password:p});
+    if(r.error)throw r.error;
+    if(!r.data?.session?.user)throw new Error('Login session was not created.');
+
+    // Verify the server-side identity, not merely the email typed into the form.
+    const verified=await db.auth.getUser();
+    if(verified.error)throw verified.error;
+    if(!verified.data?.user)throw new Error('Could not verify the logged-in account.');
+
+    if(generation!==authGeneration) return;
+
+    user=verified.data.user;
+    setAccountUI();
+    await initForCurrentUser(generation);
+    msg('');
   }catch(err){
-    msg('Login error: '+(err?.message||String(err)));$('signInBtn').disabled=false;
+    if(generation===authGeneration){
+      user=null;
+      membersData=[];
+      selected=null;
+      setAccountUI();
+      msg('Login failed: '+(err?.message||String(err)));
+    }
+  }finally{
+    btn.disabled=false;
   }
-}async function signout(){await db.auth.signOut()}db.auth.onAuthStateChange((_e,s)=>{
-  user=s?.user||null;
+}
+
+async function signout(){
+  ++authGeneration;
+  user=null;
+  membersData=[];
+  selected=null;
+  managerDept='';
+  homeDept='';
+  setAccountUI();
+  try{await db.auth.signOut()}catch(e){console.error(e)}
+  msg('');
+}
+
+function setAccountUI(){
   $('login').style.display=user?'none':'block';
   $('app').style.display=user?'block':'none';
-  if(user)init();
+  if($('loggedInAccount'))
+    $('loggedInAccount').textContent=user?('Logged in as: '+(user.email||'')):'';
+}
+
+async function initForCurrentUser(generation){
+  if(!user?.id || generation!==authGeneration)return;
+  bindHomeSearch();
+  let y=new Date().getFullYear();
+  $('year').innerHTML='';
+  for(let i=2019;i<=y+5;i++)$('year').innerHTML+=`<option>${i}</option>`;
+  await loadMembers(true,generation);
+}
+
+// Auth callbacks are deliberately not allowed to start a competing load.
+// Login/logout functions above own the account switch, preventing stale-session
+// races between two different accounts.
+db.auth.onAuthStateChange((event,session)=>{
+  if(event==='SIGNED_OUT'){
+    ++authGeneration;
+    user=null;
+    membersData=[];
+    selected=null;
+    managerDept='';
+    homeDept='';
+    setAccountUI();
+  }
 });
+
+async function restoreExistingSession(){
+  try{
+    const r=await db.auth.getSession();
+    if(!r.data?.session?.user)return;
+    const verified=await db.auth.getUser();
+    if(verified.error||!verified.data?.user)return;
+    user=verified.data.user;
+    setAccountUI();
+    await initForCurrentUser(authGeneration);
+  }catch(e){
+    console.error('Session restore failed:',e);
+    user=null;
+    membersData=[];
+    setAccountUI();
+  }
+}
+
 window.addEventListener('error',e=>{
   if(!user && e?.message) msg('Website error: '+e.message);
 });function bindHomeSearch(){
@@ -157,7 +286,16 @@ window.addEventListener('error',e=>{
     el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();renderHomeResults();}});
   }
 }
-function init(){bindHomeSearch();let y=new Date().getFullYear();$('year').innerHTML='';for(let i=2019;i<=y+5;i++)$('year').innerHTML+=`<option>${i}</option>`;loadMembers(true)}async function loadMembers(first=false){if(!user?.id){membersData=[];renderHome();return}let r=await db.from('people').select('*').eq('user_id',user.id).order('name');if(r.error)return alert(r.error.message);membersData=r.data;renderHome();if(!first){renderMembers();dashboardTotals()}}function renderHome(){loadHomeOverallTotals();
+async function loadMembers(first=false,generation=authGeneration){
+  if(generation!==authGeneration)return;
+  const verified=await db.auth.getUser();
+  if(verified.error||!verified.data?.user){
+    user=null;membersData=[];setAccountUI();return;
+  }
+  const uid=verified.data.user.id;
+  user=verified.data.user;
+  if(generation!==authGeneration)return;
+  let r=await db.from('people').select('*').eq('user_id',uid).order('name');if(r.error)return alert(r.error.message);membersData=(r.data||[]).filter(p=>String(p.user_id)===String(uid));if(selected&&!membersData.some(p=>p.id===selected.id))selected=null;renderHome();if(!first){renderMembers();dashboardTotals()}}function renderHome(){loadHomeOverallTotals();
   let groups={};
   membersData.forEach(p=>{
     let d=p.department||'Unassigned';
@@ -181,7 +319,7 @@ function init(){bindHomeSearch();let y=new Date().getFullYear();$('year').innerH
 }
 function chooseDepartment(d){managerDept=d;showManager();renderMembers();dashboardTotals()}async function loadHomeOverallTotals(){
   // Home-page summary is intentionally ALL YEARS, independent of the selected year.
-  const r=await db.from('salary_records').select('payable,paid');
+  const ids=membersData.map(p=>p.id);if(!ids.length)return;const r=await db.from('salary_records').select('payable,paid').in('person_id',ids);
   if(r.error){
     console.error('Home overall totals:',r.error.message);
     return;
@@ -264,7 +402,7 @@ async function loadHomeTotals(arr){let yr=+$('year').value;for(const p of arr){l
   <div class="membername">${esc(p.employee_id||'No ID')} · ${esc(p.name)}</div>
   <div class="mini">${esc(p.role||'No designation')} · ${esc(p.department||'Unassigned')}</div>
   <div class="mnums"><div>Payable<b id="p-${p.id}">₹0</b></div><div>Paid<b id="a-${p.id}">₹0</b></div><div class="d">Due<b id="d-${p.id}">₹0</b></div></div>
-</div>`).join('');loadMemberTotals(arr)}async function loadMemberTotals(arr){let yr=+$('year').value;for(const p of arr){let r=await db.from('salary_records').select('payable,paid').eq('person_id',p.id).eq('year',yr);if(r.error)continue;let a=r.data.reduce((x,z)=>x+(+z.payable||0),0),b=r.data.reduce((x,z)=>x+(+z.paid||0),0);if($('p-'+p.id)){$('p-'+p.id).textContent=money(a);$('a-'+p.id).textContent=money(b);$('d-'+p.id).textContent=money(Math.max(0,a-b))}}}async function dashboardTotals(){let ids=managerDept?membersData.filter(p=>(p.department||'Unassigned')===managerDept).map(p=>p.id):null;let q=db.from('salary_records').select('payable,paid').eq('year',+$('year').value);if(ids)q=q.in('person_id',ids);let r=await q;if(r.error)return;let p=r.data.reduce((x,z)=>x+(+z.payable||0),0),a=r.data.reduce((x,z)=>x+(+z.paid||0),0);$('allPayable').textContent=money(p);$('allPaid').textContent=money(a);$('allDue').textContent=money(Math.max(0,p-a))}function selectMember(id){selected=membersData.find(x=>x.id===id);$('empty').style.display='none';$('detail').style.display='block';$('personName').textContent=selected.name;$('personEmployeeId').textContent='Employee ID: '+(selected.employee_id||'Not assigned');$('personRole').textContent=selected.role||'No designation';$('personDept').textContent='Department: '+(selected.department||'Unassigned');renderMembers();loadRecords()}async function loadRecords(){if(!selected)return;let r=await db.from('salary_records').select('*').eq('person_id',selected.id).eq('year',+$('year').value);if(r.error)return alert(r.error.message);let map=new Map(r.data.map(x=>[x.month,x]));$('rows').innerHTML=months.map((m,i)=>{let x=map.get(i+1)||{};return `<tr><td>${m}</td><td><input class="payable" type="number" min="0" value="${x.payable||0}"></td><td><input class="paid" type="number" min="0" value="${x.paid||0}"></td><td><input class="date" type="date" value="${x.payment_date||''}"></td><td class="duecell">₹0</td></tr>`}).join('');calculate()}function calculate(){let p=0,a=0;document.querySelectorAll('#rows tr').forEach(t=>{let x=+t.querySelector('.payable').value||0,y=+t.querySelector('.paid').value||0;p+=x;a+=y;let d=Math.max(0,x-y),c=t.querySelector('.duecell');c.textContent=money(d);c.className='duecell '+(d?'pending':'zero')});let d=Math.max(0,p-a);$('tp').textContent=$('sp').textContent=money(p);$('ta').textContent=$('sa').textContent=money(a);$('td').textContent=$('sd').textContent=money(d)}function scheduleAutoSave(){calculate();$('saveStatus').textContent='Saving...';clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveRecords(true),900)}async function saveRecords(silent=false){if(!selected)return;$('saveStatus').textContent='Saving...';let yr=+$('year').value,d=[];document.querySelectorAll('#rows tr').forEach((t,i)=>d.push({person_id:selected.id,year:yr,month:i+1,payable:+t.querySelector('.payable').value||0,paid:+t.querySelector('.paid').value||0,payment_date:t.querySelector('.date').value||null}));let r=await db.from('salary_records').upsert(d,{onConflict:'person_id,year,month'});if(r.error){$('saveStatus').textContent='Save failed';if(!silent)alert(r.error.message);return}$('saveStatus').textContent='✓ Saved automatically';await dashboardTotals();renderMembers()}function yearChanged(){loadMembers();loadHomeOverallTotals();if(selected)loadRecords()}function populateDesignationOptions(){
+</div>`).join('');loadMemberTotals(arr)}async function loadMemberTotals(arr){let yr=+$('year').value;for(const p of arr){let r=await db.from('salary_records').select('payable,paid').eq('person_id',p.id).eq('year',yr);if(r.error)continue;let a=r.data.reduce((x,z)=>x+(+z.payable||0),0),b=r.data.reduce((x,z)=>x+(+z.paid||0),0);if($('p-'+p.id)){$('p-'+p.id).textContent=money(a);$('a-'+p.id).textContent=money(b);$('d-'+p.id).textContent=money(Math.max(0,a-b))}}}async function dashboardTotals(){let ids=managerDept?membersData.filter(p=>(p.department||'Unassigned')===managerDept).map(p=>p.id):null;let q=db.from('salary_records').select('payable,paid').eq('year',+$('year').value);if(ids)q=q.in('person_id',ids);let r=await q;if(r.error)return;let p=r.data.reduce((x,z)=>x+(+z.payable||0),0),a=r.data.reduce((x,z)=>x+(+z.paid||0),0);$('allPayable').textContent=money(p);$('allPaid').textContent=money(a);$('allDue').textContent=money(Math.max(0,p-a))}function selectMember(id){selected=membersData.find(x=>x.id===id);$('empty').style.display='none';$('detail').style.display='block';$('personName').textContent=selected.name;$('personEmployeeId').textContent='Employee ID: '+(selected.employee_id||'Not assigned');$('personRole').textContent=selected.role||'No designation';$('personDept').textContent='Department: '+(selected.department||'Unassigned');renderMembers();loadRecords()}async function loadRecords(){if(!user?.id||!selected||!membersData.some(p=>p.id===selected.id))return;let r=await db.from('salary_records').select('*').eq('person_id',selected.id).eq('year',+$('year').value);if(r.error)return alert(r.error.message);let map=new Map(r.data.map(x=>[x.month,x]));$('rows').innerHTML=months.map((m,i)=>{let x=map.get(i+1)||{};return `<tr><td>${m}</td><td><input class="payable" type="number" min="0" value="${x.payable||0}"></td><td><input class="paid" type="number" min="0" value="${x.paid||0}"></td><td><input class="date" type="date" value="${x.payment_date||''}"></td><td class="duecell">₹0</td></tr>`}).join('');calculate()}function calculate(){let p=0,a=0;document.querySelectorAll('#rows tr').forEach(t=>{let x=+t.querySelector('.payable').value||0,y=+t.querySelector('.paid').value||0;p+=x;a+=y;let d=Math.max(0,x-y),c=t.querySelector('.duecell');c.textContent=money(d);c.className='duecell '+(d?'pending':'zero')});let d=Math.max(0,p-a);$('tp').textContent=$('sp').textContent=money(p);$('ta').textContent=$('sa').textContent=money(a);$('td').textContent=$('sd').textContent=money(d)}function scheduleAutoSave(){calculate();$('saveStatus').textContent='Saving...';clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveRecords(true),900)}async function saveRecords(silent=false){if(!selected)return;$('saveStatus').textContent='Saving...';let yr=+$('year').value,d=[];document.querySelectorAll('#rows tr').forEach((t,i)=>d.push({person_id:selected.id,year:yr,month:i+1,payable:+t.querySelector('.payable').value||0,paid:+t.querySelector('.paid').value||0,payment_date:t.querySelector('.date').value||null}));let r=await db.from('salary_records').upsert(d,{onConflict:'person_id,year,month'});if(r.error){$('saveStatus').textContent='Save failed';if(!silent)alert(r.error.message);return}$('saveStatus').textContent='✓ Saved automatically';await dashboardTotals();renderMembers()}function yearChanged(){loadMembers();loadHomeOverallTotals();if(selected)loadRecords()}function populateDesignationOptions(){
   const el=$('role');
   if(!el)return;
   const current=el.value;
@@ -358,6 +496,178 @@ async function saveMemberForm(){
     btn.disabled=false;
   }
 }
+
+
+
+
+function toggleBackupPanel(){
+  const p=$('backupPanel');
+  if(p)p.style.display=p.style.display==='none'?'block':'none';
+}
+
+function backupStatus(t){
+  if($('backupStatus'))$('backupStatus').textContent=t;
+  else msg(t);
+}
+
+async function createFullBackup(){
+  if(!user?.id){backupStatus('Please sign in first.');return}
+  try{
+    backupStatus('Creating backup…');
+    const auth=await db.auth.getUser();
+    if(auth.error||!auth.data?.user)throw new Error('Your login session has expired.');
+    const uid=auth.data.user.id;
+
+    // Explicitly scope every query to the authenticated account.
+    const peopleResult=await db.from('people').select('*').eq('user_id',uid).order('employee_id');
+    if(peopleResult.error)throw peopleResult.error;
+    const people=peopleResult.data||[];
+    const ids=people.map(p=>p.id);
+
+    let salary=[];
+    if(ids.length){
+      const salaryResult=await db.from('salary_records').select('*').in('person_id',ids);
+      if(salaryResult.error)throw salaryResult.error;
+      salary=salaryResult.data||[];
+    }
+
+    const backup={
+      format:"Salary Manager Backup",
+      version:1,
+      created_at:new Date().toISOString(),
+      user_id:uid,
+      account_email:auth.data.user.email||"",
+      people,
+      salary_records:salary
+    };
+
+    const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+    a.href=url;
+    a.download=`Salary_Manager_Backup_${stamp}.json`;
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+
+    backupStatus(`✓ Backup created: ${people.length} members, ${salary.length} salary records.`);
+  }catch(e){
+    console.error(e);
+    backupStatus('Backup failed: '+(e?.message||String(e)));
+  }
+}
+
+async function restoreFullBackup(){
+  if(!user?.id){backupStatus('Please sign in first.');return}
+  const input=$('restoreBackupFile');
+  const file=input?.files?.[0];
+  if(!file)return;
+
+  try{
+    backupStatus('Reading backup…');
+    const text=await file.text();
+    const backup=JSON.parse(text);
+
+    if(backup?.format!=="Salary Manager Backup" || !Array.isArray(backup.people) || !Array.isArray(backup.salary_records))
+      throw new Error('This is not a valid Salary Manager backup.');
+
+    const auth=await db.auth.getUser();
+    if(auth.error||!auth.data?.user)throw new Error('Your login session has expired.');
+    const uid=auth.data.user.id;
+
+    // Never restore a backup belonging to another login.
+    if(backup.user_id && String(backup.user_id)!==String(uid))
+      throw new Error('This backup belongs to another account. Restore it while signed into that account.');
+
+    const ok=confirm(
+      `Restore ${backup.people.length} members and ${backup.salary_records.length} salary records into this account?\n\n`+
+      `Existing records with the same IDs/month/year may be updated.`
+    );
+    if(!ok){backupStatus('Restore cancelled.');return}
+
+    // Ensure every member being restored belongs to this authenticated account.
+    const peoplePayload=backup.people.map(p=>({...p,user_id:uid}));
+    if(peoplePayload.length){
+      const pr=await db.from('people').upsert(peoplePayload,{onConflict:'id'});
+      if(pr.error)throw pr.error;
+    }
+
+    // Restore salary rows only for people belonging to this account.
+    const restoredPeopleIds=new Set(peoplePayload.map(p=>String(p.id)));
+    const salaryPayload=backup.salary_records
+      .filter(r=>restoredPeopleIds.has(String(r.person_id)))
+      .map(r=>({...r}));
+
+    if(salaryPayload.length){
+      const sr=await db.from('salary_records').upsert(salaryPayload,{onConflict:'id'});
+      if(sr.error)throw sr.error;
+    }
+
+    await loadMembers();
+    backupStatus(`✓ Restore complete: ${peoplePayload.length} members and ${salaryPayload.length} salary records.`);
+    if(input)input.value='';
+  }catch(e){
+    console.error(e);
+    backupStatus('Restore failed: '+(e?.message||String(e)));
+  }
+}
+
+function toggleExportPanel(){
+  const p=$('exportPanel');
+  p.style.display=p.style.display==='none'?'block':'none';
+}
+function selectAllExportCols(v){
+  document.querySelectorAll('.exportCol').forEach(x=>x.checked=v);
+}
+async function exportSalaryExcel(){
+  if(!user?.id){msg('Please sign in first');return}
+  const cols=[...document.querySelectorAll('.exportCol:checked')].map(x=>x.value);
+  if(!cols.length){msg('Select at least one column.');return}
+  const from=$('exportFrom').value,to=$('exportTo').value;
+  if(from&&to&&from>to){msg('From month cannot be after To month.');return}
+  try{
+    const u=await db.auth.getUser();
+    if(u.error||!u.data?.user)throw new Error('Your login session has expired.');
+    const uid=u.data.user.id;
+    const pr=await db.from('people').select('id,employee_id,name,role,department').eq('user_id',uid).order('employee_id');
+    if(pr.error)throw pr.error;
+    const ids=(pr.data||[]).map(x=>x.id);
+    if(!ids.length){msg('No members found in this account.');return}
+    const sr=await db.from('salary_records').select('person_id,year,month,payable,paid,payment_date').in('person_id',ids).order('year').order('month');
+    if(sr.error)throw sr.error;
+    const pm=new Map((pr.data||[]).map(x=>[String(x.id),x]));
+    const rows=[];
+    for(const r of (sr.data||[])){
+      const person=pm.get(String(r.person_id)); if(!person)continue;
+      const y=Number(r.year)||0,m=Number(r.month)||0;
+      const key=`${y}-${String(m).padStart(2,'0')}`;
+      if(from&&key<from)continue;
+      if(to&&key>to)continue;
+      const payable=Number(r.payable)||0,paid=Number(r.paid)||0;
+      const row={
+        "Employee ID":person.employee_id||"",
+        "Employee Name":person.name||"",
+        "Designation":person.role||"",
+        "Department":person.department||"",
+        "Month":months[m-1]||"",
+        "Year":y,
+        "Payable Amount":payable,
+        "Paid Amount":paid,
+        "Due":Math.max(0,payable-paid),
+        "Payment Date":r.payment_date||""
+      };
+      const selected={}; cols.forEach(c=>selected[c]=row[c]); rows.push(selected);
+    }
+    if(!rows.length){msg('No salary records match the selected months.');return}
+    const ws=XLSX.utils.json_to_sheet(rows,{header:cols});
+    ws['!cols']=cols.map(c=>({wch:Math.max(14,Math.min(42,c.length+8))}));
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'Salary Data');
+    XLSX.writeFile(wb,`Salary_Manager_Export_${new Date().toISOString().slice(0,10)}.xlsx`);
+    msg(`✓ Exported ${rows.length} record${rows.length===1?'':'s'}.`);
+  }catch(e){console.error(e);msg('Export failed: '+(e?.message||String(e)))}
+}
+
 
 function showEditMembers(){
   $('home').style.display='none';
@@ -491,9 +801,9 @@ async function confirmClearData(){
   $('clearDataStatus').textContent='Deleting all data...';
   try{
     // Delete salary records first because they reference members.
-    let a=await db.from('salary_records').delete().not('id','is',null);
+    let a=await db.from('salary_records').delete().not('id','is',null).in('person_id',membersData.map(p=>p.id));
     if(a.error) throw a.error;
-    let b=await db.from('people').delete().not('id','is',null);
+    let b=await db.from('people').delete().eq('user_id',user.id);
     if(b.error) throw b.error;
     membersData=[];
     selected=null;
@@ -604,7 +914,8 @@ async function previewExcel(){
       payable:pick(r,['Payable','Payable Amount','Salary','Monthly Salary','Amount','__Amount']),
       paid:pick(r,['Paid','Paid Amount']),
       payment_date:pick(r,['Payment Date','Paid Date','Date']),
-      source_month:pick(r,['Month','Salary Month','__Month'])
+      source_month:pick(r,['Month','Salary Month','__Month']),
+      source_year:pick(r,['Year','Salary Year','__Year'])
     })).filter(x=>x.employee_id);
 
     if(!importedRows.length){
@@ -616,7 +927,7 @@ async function previewExcel(){
     $('importPreview').style.display='block';
     $('importPreview').innerHTML='<table><thead><tr><th>Employee ID</th><th>Name</th><th>Designation</th><th>Department</th><th>Payable</th><th>Paid</th><th>Month</th></tr></thead><tbody>'+
       shown.map(x=>{
-      const parsedMonth=parseExcelMonthYear(x.source_month);
+      const parsedMonth=parseExcelMonthYear(x.source_month || (x.source_year?String(x.source_year):''));
       const monthDisplay=parsedMonth
         ? `${months[parsedMonth.month-1]}-${String(parsedMonth.year).slice(-2)}`
         : String(x.source_month??'');
@@ -632,11 +943,22 @@ async function previewExcel(){
 }
 function parseMoney(v){if(typeof v==='number')return v;let n=String(v??'').replace(/[₹,\s]/g,'');return parseFloat(n)||0}
 function excelDate(v){
-  if(!v)return null;
-  if(v instanceof Date)return v.toISOString().slice(0,10);
-  if(typeof v==='number'){let d=XLSX.SSF.parse_date_code(v);if(d)return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`}
-  let d=new Date(v);return isNaN(d)?null:d.toISOString().slice(0,10)
+  if(v===null||v===undefined||v==='')return null;
+  if(v instanceof Date&&!isNaN(v.getTime()))
+    return `${v.getUTCFullYear()}-${String(v.getUTCMonth()+1).padStart(2,'0')}-${String(v.getUTCDate()).padStart(2,'0')}`;
+  if(typeof v==='number'&&isFinite(v)){
+    const d=XLSX.SSF.parse_date_code(v);
+    if(d)return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+  }
+  const t=String(v).trim();
+  let m=t.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/);
+  if(m)return `${m[3]}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;
+  m=t.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})$/);
+  if(m)return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
+  const d=new Date(t);
+  return isNaN(d.getTime())?null:d.toISOString().slice(0,10);
 }
+
 async function withTimeout(promise, ms, label){
   let timer;
   const timeout=new Promise((_,reject)=>{
@@ -745,9 +1067,24 @@ async function confirmImport(){
         let month=+$('bulkMonth').value||1;
 
         if(x.source_month){
-          const parsed=parseExcelMonthYear(x.source_month);
-          if(parsed){year=parsed.year;month=parsed.month;}
-          else throw new Error(`Row ${i+1} (${employeeId}): Could not understand Month "${x.source_month}".`);
+          let monthValue=x.source_month;
+          const yearValue=x.source_year;
+          // Support separate Excel columns: Month = "April", Year = 2026.
+          // This prevents the importer from confusing month names with years.
+          const monthText=String(monthValue??'').trim();
+          const yearText=String(yearValue??'').trim();
+          const combined=(yearText && !/[0-9]{2,4}/.test(monthText))
+            ? `${monthText}-${yearText}`
+            : monthText;
+          const parsed=parseExcelMonthYear(monthValue);
+          if(parsed){
+            month=parsed.month;
+            year=parsed.year || (yearValue ? Number(yearValue) : null);
+          }
+          else if(yearValue && /^[0-9]{1,2}$/.test(monthText) && Number(monthText)>=1 && Number(monthText)<=12){
+            year=Number(yearValue);month=Number(monthText);
+          }
+          else throw new Error(`Row ${i+1} (${employeeId}): Could not understand Month "${x.source_month}" with Year "${x.source_year||''}".`);
         }
 
         const salaryPayload={
@@ -889,51 +1226,54 @@ function monthYearLabel(year,month){
   return new Date(Number(year),Number(month)-1,1).toLocaleString('en-US',{month:'long',year:'numeric'});
 }
 function parseExcelMonthYear(v){
-  // Excel month cells are read as serial numbers. Convert the serial directly
-  // using SheetJS' Excel date system; do not use JS Date/timezone conversion.
+  if(v===null||v===undefined||v==='')return null;
+
+  // Excel may supply a date as a numeric serial (e.g. 45528).
+  // Convert it to a real date and use its month/year.
   if(typeof v==='number' && isFinite(v)){
-    try{
+    if(v>=1 && v<=2958465){
       const d=XLSX.SSF.parse_date_code(v);
-      if(d && d.y && d.m) return {year:Number(d.y), month:Number(d.m)};
-    }catch(e){}
+      if(d && d.y && d.m) return {year:Number(d.y),month:Number(d.m)};
+    }
+    const n=Math.trunc(v);
+    if(n>=1 && n<=12)return {year:null,month:n};
   }
 
-  // Also support Date objects in case a browser/SheetJS build returns one.
-  if(v instanceof Date && !isNaN(v.getTime())){
-    return {year:v.getUTCFullYear(), month:v.getUTCMonth()+1};
-  }
-
-  const t=String(v??'').trim();
+  const t=String(v).trim();
   if(!t)return null;
 
-  // Explicit month names: Mar-25, Apr-25, March-2025, April 2025, etc.
-  const months={
-    jan:1,january:1,feb:2,february:2,mar:3,march:3,
-    apr:4,april:4,may:5,jun:6,june:6,jul:7,july:7,
-    aug:8,august:8,sep:9,sept:9,september:9,
-    oct:10,october:10,nov:11,november:11,dec:12,december:12
-  };
-  let m=t.match(/^([A-Za-z]{3,9})\s*[-\/ ]\s*(\d{2}|\d{4})$/);
-  if(!m){
-    m=t.match(/^([A-Za-z]{3,9})\s+(?:\d{1,2}\s+)?(\d{2}|\d{4})$/);
-  }
-  if(m){
-    const month=months[m[1].toLowerCase()];
-    if(month){
-      let year=Number(m[2]);
-      if(year<100)year+=2000;
-      return {year,month};
+  // Numeric strings that are actually Excel date serials.
+  if(/^\d+(?:\.\d+)?$/.test(t)){
+    const n=Number(t);
+    if(n>=1 && n<=2958465){
+      const d=XLSX.SSF.parse_date_code(n);
+      if(d && d.y && d.m) return {year:Number(d.y),month:Number(d.m)};
     }
+    if(Number.isInteger(n)&&n>=1&&n<=12)return {year:null,month:n};
   }
 
-  // ISO year-month: 2025-03 / 2025-04, optionally with a day.
-  m=t.match(/^(20\d{2})[-\/.](0?[1-9]|1[0-2])(?:[-\/.]\d{1,2})?(?:T.*)?$/);
+  // Date formats.
+  let m=t.match(/^(\d{4})[-\/.](\d{1,2})(?:[-\/.]\d{1,2})?$/);
   if(m)return {year:Number(m[1]),month:Number(m[2])};
 
-  // Month-year numeric: 03-2025 / 04-2025.
-  m=t.match(/^(0?[1-9]|1[0-2])[-\/.](20\d{2})$/);
+  m=t.match(/^(\d{1,2})[-\/.](\d{4})$/);
   if(m)return {year:Number(m[2]),month:Number(m[1])};
+
+  m=t.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/);
+  if(m)return {year:Number(m[3]),month:Number(m[2])};
+
+  const lower=t.toLowerCase();
+  const names=["january","february","march","april","may","june","july","august","september","october","november","december"];
+  const short=["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+  let idx=names.findIndex(x=>lower===x);
+  if(idx<0)idx=short.findIndex(x=>lower===x);
+  if(idx>=0)return {year:null,month:idx+1};
+
+  // Let the native Date parser handle values such as "April 2026".
+  const d=new Date(t);
+  if(!isNaN(d.getTime()))return {year:d.getFullYear(),month:d.getMonth()+1};
 
   return null;
 }
-function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}function escAttr(s){return esc(s).replace(/'/g,'&#039;')}document.addEventListener('input',e=>{if(e.target.matches('.payable,.paid,.date')){calculate();scheduleAutoSave()}if(e.target.matches('.bulkAmount'))updateBulkDues()});document.addEventListener('change',e=>{if(e.target.matches('#bulkMonth,#bulkYear'))renderBulkMembers()})</script></body></html>
+
+function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}function escAttr(s){return esc(s).replace(/'/g,'&#039;')}document.addEventListener('input',e=>{if(e.target.matches('.payable,.paid,.date')){calculate();scheduleAutoSave()}if(e.target.matches('.bulkAmount'))updateBulkDues()});document.addEventListener('change',e=>{if(e.target.matches('#bulkMonth,#bulkYear'))renderBulkMembers();});document.addEventListener('DOMContentLoaded',()=>restoreExistingSession());</script></body></html>
