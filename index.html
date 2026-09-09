@@ -817,8 +817,25 @@ async function confirmClearData(){
   }
 }
 
-function openImport(){$('importModal').style.display='grid';$('importModal').classList.add('open');$('importStatus').textContent='';$('importPreview').style.display='none';$('confirmImportBtn').style.display='none';$('excelFile').value='';importedRows=[]}
-function closeImport(){$('importModal').style.display='none';$('importModal').classList.remove('open')}
+function openImport(){
+  $('importModal').style.display='grid';
+  $('importModal').classList.add('open');
+  $('importStatus').textContent='';
+  $('importPreview').style.display='none';
+  const btn=$('confirmImportBtn');
+  btn.style.display='none';
+  btn.disabled=false;
+  btn.textContent='Confirm Import';
+  $('excelFile').value='';
+  importedRows=[];
+}
+function closeImport(){
+  $('importModal').style.display='none';
+  $('importModal').classList.remove('open');
+  const btn=$('confirmImportBtn');
+  btn.disabled=false;
+  btn.textContent='Confirm Import';
+}
 function normalizeHeader(x){return String(x??'').replace(/^\\uFEFF/,'').trim().toLowerCase().replace(/[^a-z0-9]/g,'')}
 function findHeader(obj,names){
   let keys=Object.keys(obj);
@@ -1154,7 +1171,8 @@ async function confirmImport(){
       `${salarySaved} salary record${salarySaved===1?'':'s'} saved.`;
 
     setTimeout(()=>{
-      $('confirmImportBtn').style.display='none';
+      btn.style.display='none';
+      btn.disabled=false;
       btn.textContent=originalText;
     },1200);
 
