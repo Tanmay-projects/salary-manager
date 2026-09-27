@@ -110,7 +110,7 @@
 <section id="manager" style="display:none"><div style="margin-bottom:15px"><button class="secondary" onclick="showHome()">← Home</button> <button class="primary" onclick="showBulk()">⚡ Bulk Salary Entry</button> <button class="secondary" onclick="openImport()">📥 Import Excel</button></div><div class="toolbar" style="margin-bottom:15px"><div><h2 id="managerTitle">All Members</h2><div id="managerDeptNote" class="mini"></div></div><button class="secondary" onclick="clearManagerDepartment()">Show All Departments</button> <button class="danger" onclick="openClearData()">🗑 Clear All Data</button></div><div class="cards"><div class="card metric payable"><b>TOTAL PAYABLE</b><strong id="allPayable">₹0</strong></div><div class="card metric paid"><b>TOTAL PAID</b><strong id="allPaid">₹0</strong></div><div class="card metric due"><b>TOTAL DUE</b><strong id="allDue">₹0</strong></div></div><div class="layout"><aside class="card"><div class="toolbar"><h2>Members (<span id="count">0</span>)</h2><button class="primary" onclick="openModal()">+ Add Member</button></div><div class="search"><input id="search" placeholder="Search name, designation or department..." oninput="renderMembers()"></div><div id="members" class="members"></div></aside><main class="card"><div id="empty" class="empty">Select a member to view and manage their salary.</div><div id="detail" style="display:none">
 <div class="detailhead"><div><h2 id="personName"></h2><div id="personEmployeeId" class="mini"></div><div id="personRole"></div><div id="personDept" class="mini"></div></div>
 <div><span id="saveStatus" class="autosave">All changes saved</span><select id="year" class="year-hidden-select" onchange="yearChanged()"></select><button id="saveNowBtn" class="primary" style="display:none" onclick="saveRecords()">Save Now</button></div></div>
-<div id="yearOverview" class="year-overview"><div class="year-overview-head"><div><div class="year-overview-title">Salary Years</div><div class="year-overview-note">Select a year to view its 12 monthly records.</div></div></div><div id="yearCards" class="year-grid"></div></div>
+<div id="yearOverview" class="year-overview"><div class="year-overview-head"><div><div class="year-overview-title">Salary Years</div><div class="year-overview-note">Select a year to view its 12 monthly records.</div></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><select id="newMemberYear"></select><button class="secondary" type="button" onclick="openMemberYearFromPicker()">Open / Add Year</button></div></div><div id="yearCards" class="year-grid"></div></div>
 <div id="monthPanel" class="month-panel" style="display:none"><div class="month-panel-head"><button class="secondary" type="button" onclick="showYearOverview()">← All Years</button><div id="selectedYearLabel" class="month-panel-year"></div><button class="primary" onclick="saveRecords()">Save Now</button></div>
 <div class="tablewrap"><table><thead><tr><th>Month</th><th>Payable Amount (₹)</th><th>Paid Amount (₹)</th><th>Payment Date</th><th>Due Amount (₹)</th></tr></thead><tbody id="rows"></tbody><tfoot><tr><td>YEAR TOTAL</td><td id="tp">₹0</td><td id="ta">₹0</td><td></td><td id="td">₹0</td></tr></tfoot></table></div>
 <div class="detailstats"><div><b>YEAR PAYABLE</b><strong id="sp">₹0</strong></div><div><b>YEAR PAID</b><strong id="sa">₹0</strong></div><div><b>YEAR DUE</b><strong id="sd">₹0</strong></div></div></div></div></main></div></section></div></div>
@@ -436,8 +436,12 @@ async function loadYearOverview(){
     groups[year].records++;
   });
   const years=Object.keys(groups).map(Number).sort((a,b)=>b-a);
+  const currentYear=new Date().getFullYear();
+  const pickerYears=[];
+  for(let y=2019;y<=currentYear+5;y++)pickerYears.push(y);
+  $('newMemberYear').innerHTML=pickerYears.map(y=>'<option value="'+y+'">'+y+(groups[y]?' — existing':' — new')+'</option>').join('');
   if(!years.length){
-    $('yearCards').innerHTML='<div class="year-empty">No salary records have been entered for this member yet.</div>';
+    $('yearCards').innerHTML='<div class="year-empty">No salary records have been entered for this member yet. Use <b>Open / Add Year</b> above to start one.</div>';
     return;
   }
   $('yearCards').innerHTML=years.map(year=>{
@@ -446,6 +450,11 @@ async function loadYearOverview(){
       '<div class="year-card-top"><div class="year-card-year">'+year+'</div><div class="year-card-records">'+x.records+' record'+(x.records===1?'':'s')+'</div></div>'+
       '<div class="year-card-stats"><div class="year-card-stat"><span>Payable</span><b>'+money(x.payable)+'</b></div><div class="year-card-stat"><span>Paid</span><b>'+money(x.paid)+'</b></div><div class="year-card-stat due"><span>Due</span><b>'+money(due)+'</b></div></div></div>';
   }).join('');
+}
+function openMemberYearFromPicker(){
+  const year=Number($('newMemberYear').value);
+  if(!year)return;
+  selectMemberYear(year);
 }
 function showYearOverview(){
   $('yearOverview').style.display='block';
