@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Salary Manager — Login Test</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{font-family:Arial,sans-serif;background:#f5f6fb;color:#182033;margin:0;padding:30px}
+.card{max-width:650px;margin:auto;background:white;border:1px solid #e2e4eb;border-radius:14px;padding:24px;box-shadow:0 8px 30px #22204012}
+h1{margin-top:0}.note{color:#667085;font-size:13px}
+input{width:100%;box-sizing:border-box;height:42px;border:1px solid #dfe2eb;border-radius:8px;padding:0 11px;margin:6px 0 10px}
+button{border:0;border-radius:8px;padding:11px 15px;font-weight:700;cursor:pointer;background:#5b45d8;color:white}
+button:disabled{opacity:.6}
+.row{margin:14px 0;padding:12px;border-radius:9px;background:#f8f8fb}
+.ok{color:#198754}.bad{color:#c0392b}.wait{color:#a66b00}
+pre{white-space:pre-wrap;word-break:break-word;background:#111827;color:#e5e7eb;padding:12px;border-radius:8px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>Salary Manager — Login Diagnostic</h1>
+<p class="note">This is a temporary diagnostic page. It does not modify Salary Manager data.</p>
+
+<label>Email</label>
+<input id="email" type="email" autocomplete="username">
+<label>Password</label>
+<input id="password" type="password" autocomplete="current-password">
+<button id="test" onclick="runTest()">Test Login</button>
+
+<div id="status" class="row">Waiting for test.</div>
+<div id="details"></div>
+</div>
+
+<script>
+const SUPABASE_URL='https://ryqfahoiedgdpbbuuknb.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_ydyMbJCC-U5m4W_vXh6HLg_6yngf3Jf';
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+const $=id=>document.getElementById(id);
+function line(label,value,cls=''){
+  $('details').insertAdjacentHTML('beforeend',
+    '<div class="row '+cls+'"><b>'+label+'</b><br>'+String(value).replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>');
+}
+async function runTest(){
+  $('details').innerHTML='';
+  $('status').className='row wait';
+  $('status').textContent='Running tests...';
+  $('test').disabled=true;
+  try{
+    line('1. Supabase URL','Testing '+SUPABASE_URL);
+
+    const health=await fetch(SUPABASE_URL+'/auth/v1/health',{method:'GET'});
+    const healthText=await health.text();
+    if(!health.ok) throw new Error('Auth health HTTP '+health.status+': '+healthText);
+    line('2. Supabase Auth endpoint','HTTP '+health.status+' — reachable','ok');
+
+    const email=$('email').value.trim().toLowerCase();
+    const password=$('password').value;
+    if(!email||!password) throw new Error('Enter the same Salary Manager email and password you normally use.');
+
+    const result=await db.auth.signInWithPassword({email,password});
+    if(result.error){
+      line('3. signInWithPassword',result.error.message,'bad');
+      line('Auth error details',JSON.stringify(result.error,null,2));
+      throw result.error;
+    }
+    line('3. signInWithPassword','SUCCESS','ok');
+
+    if(!result.data.session||!result.data.user){
+      throw new Error('Supabase returned no session/user after successful sign-in.');
+    }
+    line('4. Session created','User ID: '+result.data.user.id,'ok');
+
+    const me=await db.auth.getUser();
+    if(me.error) throw me.error;
+    line('5. getUser','SUCCESS — '+(me.data.user?.email||''),'ok');
+
+    const people=await db.from('people').select('id',{count:'exact',head:true});
+    if(people.error){
+      line('6. Database/RLS test',people.error.message,'bad');
+    }else{
+      line('6. Database connection','SUCCESS — people table reachable','ok');
+    }
+
+    $('status').className='row ok';
+    $('status').textContent='LOGIN WORKS. The problem is in the main page, not Supabase authentication.';
+    await db.auth.signOut();
+  }catch(e){
+    $('status').className='row bad';
+    $('status').textContent='TEST FAILED — see the exact step above.';
+    console.error(e);
+  }finally{
+    $('test').disabled=false;
+  }
+}
+</script>
+</body>
+</html>
