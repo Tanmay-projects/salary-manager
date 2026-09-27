@@ -6,7 +6,9 @@
 .member-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 .member-actions button{cursor:pointer}
 .danger{color:#b42318;border-color:#f0b4b4;background:#fff5f5}
-</style></head><body><div id="login" class="login card"><h1>Salary Manager</h1><p>Manager login</p><input id="email" type="email" placeholder="Email"><input id="password" type="password" placeholder="Password"><div id="msg" class="msg"></div><button id="signInBtn" class="primary" style="width:100%" onclick="signin()">Sign In</button></div><div id="app" style="display:none"><header><div class="head"><div><h1>Salary Manager</h1><div class="sub">Manage salary records for all members</div></div><button class="secondary" onclick="signout()">Sign Out</button></div></header><div class="wrap"><section id="home">
+<style>
+.year-overview{margin-top:16px}.year-overview-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:12px}.year-overview-title{font-size:16px;font-weight:800}.year-overview-note{font-size:12px;color:#727b8f;margin-top:4px}.year-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}.year-card{background:#fff;border:1px solid #e4e6ee;border-radius:13px;padding:15px;cursor:pointer;transition:.15s;box-shadow:0 4px 14px #22204008}.year-card:hover{border-color:#6b55df;transform:translateY(-1px);box-shadow:0 7px 20px #22204012}.year-card-top{display:flex;justify-content:space-between;align-items:center;gap:10px}.year-card-year{font-size:19px;font-weight:800}.year-card-records{font-size:11px;color:#727b8f}.year-card-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px}.year-card-stat{background:#f7f7fb;border-radius:8px;padding:8px 6px}.year-card-stat span{display:block;font-size:9px;color:#727b8f;text-transform:uppercase;font-weight:700}.year-card-stat b{display:block;font-size:12px;margin-top:3px}.year-card-stat.due b{color:#d97918}.year-empty{padding:28px;text-align:center;border:1px dashed #d9dbe5;border-radius:12px;color:#727b8f;background:#fafaff}.month-panel{margin-top:16px}.month-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.month-panel-year{font-size:18px;font-weight:800}.year-hidden-select{display:none}@media(max-width:700px){.year-grid{grid-template-columns:1fr}.year-card-stats{grid-template-columns:repeat(3,1fr)}}
+</style></style></head><body><div id="login" class="login card"><h1>Salary Manager</h1><p>Manager login</p><input id="email" type="email" placeholder="Email"><input id="password" type="password" placeholder="Password"><div id="msg" class="msg"></div><button id="signInBtn" class="primary" style="width:100%" onclick="signin()">Sign In</button></div><div id="app" style="display:none"><header><div class="head"><div><h1>Salary Manager</h1><div class="sub">Manage salary records for all members</div></div><button class="secondary" onclick="signout()">Sign Out</button></div></header><div class="wrap"><section id="home">
 <div class="homeSummary card">
   <div class="summaryTitle">Overall Salary Summary — All Years</div>
   <div class="summaryGrid">
@@ -105,7 +107,13 @@
     </div>
   </div>
 </section>
-<section id="manager" style="display:none"><div style="margin-bottom:15px"><button class="secondary" onclick="showHome()">← Home</button> <button class="primary" onclick="showBulk()">⚡ Bulk Salary Entry</button> <button class="secondary" onclick="openImport()">📥 Import Excel</button></div><div class="toolbar" style="margin-bottom:15px"><div><h2 id="managerTitle">All Members</h2><div id="managerDeptNote" class="mini"></div></div><button class="secondary" onclick="clearManagerDepartment()">Show All Departments</button> <button class="danger" onclick="openClearData()">🗑 Clear All Data</button></div><div class="cards"><div class="card metric payable"><b>TOTAL PAYABLE</b><strong id="allPayable">₹0</strong></div><div class="card metric paid"><b>TOTAL PAID</b><strong id="allPaid">₹0</strong></div><div class="card metric due"><b>TOTAL DUE</b><strong id="allDue">₹0</strong></div></div><div class="layout"><aside class="card"><div class="toolbar"><h2>Members (<span id="count">0</span>)</h2><button class="primary" onclick="openModal()">+ Add Member</button></div><div class="search"><input id="search" placeholder="Search name, designation or department..." oninput="renderMembers()"></div><div id="members" class="members"></div></aside><main class="card"><div id="empty" class="empty">Select a member to view and manage their salary.</div><div id="detail" style="display:none"><div class="detailhead"><div><h2 id="personName"></h2><div id="personEmployeeId" class="mini"></div><div id="personRole"></div><div id="personDept" class="mini"></div></div><div><span id="saveStatus" class="autosave">All changes saved</span><select id="year" onchange="yearChanged()"></select> <button class="primary" onclick="saveRecords()">Save Now</button></div></div><div class="tablewrap"><table><thead><tr><th>Month</th><th>Payable Amount (₹)</th><th>Paid Amount (₹)</th><th>Payment Date</th><th>Due Amount (₹)</th></tr></thead><tbody id="rows"></tbody><tfoot><tr><td>YEAR TOTAL</td><td id="tp">₹0</td><td id="ta">₹0</td><td></td><td id="td">₹0</td></tr></tfoot></table></div><div class="detailstats"><div><b>YEAR PAYABLE</b><strong id="sp">₹0</strong></div><div><b>YEAR PAID</b><strong id="sa">₹0</strong></div><div><b>YEAR DUE</b><strong id="sd">₹0</strong></div></div></div></main></div></section></div></div>
+<section id="manager" style="display:none"><div style="margin-bottom:15px"><button class="secondary" onclick="showHome()">← Home</button> <button class="primary" onclick="showBulk()">⚡ Bulk Salary Entry</button> <button class="secondary" onclick="openImport()">📥 Import Excel</button></div><div class="toolbar" style="margin-bottom:15px"><div><h2 id="managerTitle">All Members</h2><div id="managerDeptNote" class="mini"></div></div><button class="secondary" onclick="clearManagerDepartment()">Show All Departments</button> <button class="danger" onclick="openClearData()">🗑 Clear All Data</button></div><div class="cards"><div class="card metric payable"><b>TOTAL PAYABLE</b><strong id="allPayable">₹0</strong></div><div class="card metric paid"><b>TOTAL PAID</b><strong id="allPaid">₹0</strong></div><div class="card metric due"><b>TOTAL DUE</b><strong id="allDue">₹0</strong></div></div><div class="layout"><aside class="card"><div class="toolbar"><h2>Members (<span id="count">0</span>)</h2><button class="primary" onclick="openModal()">+ Add Member</button></div><div class="search"><input id="search" placeholder="Search name, designation or department..." oninput="renderMembers()"></div><div id="members" class="members"></div></aside><main class="card"><div id="empty" class="empty">Select a member to view and manage their salary.</div><div id="detail" style="display:none">
+<div class="detailhead"><div><h2 id="personName"></h2><div id="personEmployeeId" class="mini"></div><div id="personRole"></div><div id="personDept" class="mini"></div></div>
+<div><span id="saveStatus" class="autosave">All changes saved</span><select id="year" class="year-hidden-select" onchange="yearChanged()"></select><button id="saveNowBtn" class="primary" style="display:none" onclick="saveRecords()">Save Now</button></div></div>
+<div id="yearOverview" class="year-overview"><div class="year-overview-head"><div><div class="year-overview-title">Salary Years</div><div class="year-overview-note">Select a year to view its 12 monthly records.</div></div></div><div id="yearCards" class="year-grid"></div></div>
+<div id="monthPanel" class="month-panel" style="display:none"><div class="month-panel-head"><button class="secondary" type="button" onclick="showYearOverview()">← All Years</button><div id="selectedYearLabel" class="month-panel-year"></div><button class="primary" onclick="saveRecords()">Save Now</button></div>
+<div class="tablewrap"><table><thead><tr><th>Month</th><th>Payable Amount (₹)</th><th>Paid Amount (₹)</th><th>Payment Date</th><th>Due Amount (₹)</th></tr></thead><tbody id="rows"></tbody><tfoot><tr><td>YEAR TOTAL</td><td id="tp">₹0</td><td id="ta">₹0</td><td></td><td id="td">₹0</td></tr></tfoot></table></div>
+<div class="detailstats"><div><b>YEAR PAYABLE</b><strong id="sp">₹0</strong></div><div><b>YEAR PAID</b><strong id="sa">₹0</strong></div><div><b>YEAR DUE</b><strong id="sd">₹0</strong></div></div></div></div></main></div></section></div></div>
 
 <div id="clearDataModal" class="modal">
   <div class="card modalbox" style="width:min(520px,95%)">
@@ -398,11 +406,105 @@ function renderHomeResults(){
   box.style.display='block';
   loadHomeTotals(arr);
 }
-async function loadHomeTotals(arr){let yr=+$('year').value;for(const p of arr){let r=await db.from('salary_records').select('payable,paid').eq('person_id',p.id).eq('year',yr);if(r.error)continue;let a=r.data.reduce((x,z)=>x+(+z.payable||0),0),b=r.data.reduce((x,z)=>x+(+z.paid||0),0);if($('hp-'+p.id)){$('hp-'+p.id).textContent=money(a);$('ha-'+p.id).textContent=money(b);$('hd-'+p.id).textContent=money(Math.max(0,a-b))}}}function clearHomeFilter(){homeDept='';$('homeSearch').value='';renderHomeResults()}function showHome(){$('manager').style.display='none';$('bulk').style.display='none';$('editMembersPage').style.display='none';$('home').style.display='block';selected=null;managerDept='';renderHome()}function openPerson(id){showManager();selectMember(id)}function showManager(){$('home').style.display='none';$('bulk').style.display='none';$('editMembersPage').style.display='none';$('manager').style.display='block';renderMembers();dashboardTotals()}function clearManagerDepartment(){managerDept='';renderMembers();dashboardTotals()}function renderMembers(){let q=$('search').value.toLowerCase(),arr=membersData.filter(x=>(!managerDept||((x.department||'Unassigned')===managerDept))&&(!q||String(x.employee_id||'').toLowerCase().includes(q)||x.name.toLowerCase().includes(q)||String(x.role||'').toLowerCase().includes(q)||String(x.department||'').toLowerCase().includes(q)));$('count').textContent=arr.length;$('managerTitle').textContent=managerDept?managerDept+' Department':'All Members';$('managerDeptNote').textContent=managerDept?`Managing ${arr.length} member${arr.length===1?'':'s'} in this department.`:'Manage members and monthly salary records.';$('members').innerHTML=arr.map(p=>`<div class="member ${selected?.id===p.id?'active':''}" onclick="selectMember('${p.id}')">
+async function loadHomeTotals(arr){let yr=+$('year').value;for(const p of arr){let r=await db.from('salary_records').select('payable,paid').eq('person_id',p.id).eq('year',yr);if(r.error)continue;let a=r.data.reduce((x,z)=>x+(+z.payable||0),0),b=r.data.reduce((x,z)=>x+(+z.paid||0),0);if($('hp-'+p.id)){$('hp-'+p.id).textContent=money(a);$('ha-'+p.id).textContent=money(b);$('hd-'+p.id).textContent=money(Math.max(0,a-b))}}}function clearHomeFilter(){homeDept='';$('homeSearch').value='';renderHomeResults()}function showHome(){$('manager').style.display='none';$('bulk').style.display='none';$('editMembersPage').style.display='none';$('home').style.display='block';selected=null;managerDept='';renderHome()}function openPerson(id){showManager();selectMember(id)}function showManager(){$('home').style.display='none';$('bulk').style.display='none';$('editMembersPage').style.display='none';$('manager').style.display='block';renderMembers();dashboardTotals();if(selected){showYearOverview()}}function clearManagerDepartment(){managerDept='';renderMembers();dashboardTotals()}function renderMembers(){let q=$('search').value.toLowerCase(),arr=membersData.filter(x=>(!managerDept||((x.department||'Unassigned')===managerDept))&&(!q||String(x.employee_id||'').toLowerCase().includes(q)||x.name.toLowerCase().includes(q)||String(x.role||'').toLowerCase().includes(q)||String(x.department||'').toLowerCase().includes(q)));$('count').textContent=arr.length;$('managerTitle').textContent=managerDept?managerDept+' Department':'All Members';$('managerDeptNote').textContent=managerDept?`Managing ${arr.length} member${arr.length===1?'':'s'} in this department.`:'Manage members and monthly salary records.';$('members').innerHTML=arr.map(p=>`<div class="member ${selected?.id===p.id?'active':''}" onclick="selectMember('${p.id}')">
   <div class="membername">${esc(p.employee_id||'No ID')} · ${esc(p.name)}</div>
   <div class="mini">${esc(p.role||'No designation')} · ${esc(p.department||'Unassigned')}</div>
   <div class="mnums"><div>Payable<b id="p-${p.id}">₹0</b></div><div>Paid<b id="a-${p.id}">₹0</b></div><div class="d">Due<b id="d-${p.id}">₹0</b></div></div>
-</div>`).join('');loadMemberTotals(arr)}async function loadMemberTotals(arr){let yr=+$('year').value;for(const p of arr){let r=await db.from('salary_records').select('payable,paid').eq('person_id',p.id).eq('year',yr);if(r.error)continue;let a=r.data.reduce((x,z)=>x+(+z.payable||0),0),b=r.data.reduce((x,z)=>x+(+z.paid||0),0);if($('p-'+p.id)){$('p-'+p.id).textContent=money(a);$('a-'+p.id).textContent=money(b);$('d-'+p.id).textContent=money(Math.max(0,a-b))}}}async function dashboardTotals(){let ids=managerDept?membersData.filter(p=>(p.department||'Unassigned')===managerDept).map(p=>p.id):null;let q=db.from('salary_records').select('payable,paid').eq('year',+$('year').value);if(ids)q=q.in('person_id',ids);let r=await q;if(r.error)return;let p=r.data.reduce((x,z)=>x+(+z.payable||0),0),a=r.data.reduce((x,z)=>x+(+z.paid||0),0);$('allPayable').textContent=money(p);$('allPaid').textContent=money(a);$('allDue').textContent=money(Math.max(0,p-a))}function selectMember(id){selected=membersData.find(x=>x.id===id);$('empty').style.display='none';$('detail').style.display='block';$('personName').textContent=selected.name;$('personEmployeeId').textContent='Employee ID: '+(selected.employee_id||'Not assigned');$('personRole').textContent=selected.role||'No designation';$('personDept').textContent='Department: '+(selected.department||'Unassigned');renderMembers();loadRecords()}async function loadRecords(){if(!user?.id||!selected||!membersData.some(p=>p.id===selected.id))return;let r=await db.from('salary_records').select('*').eq('person_id',selected.id).eq('year',+$('year').value);if(r.error)return alert(r.error.message);let map=new Map(r.data.map(x=>[x.month,x]));$('rows').innerHTML=months.map((m,i)=>{let x=map.get(i+1)||{};return `<tr><td>${m}</td><td><input class="payable" type="number" min="0" value="${x.payable||0}"></td><td><input class="paid" type="number" min="0" value="${x.paid||0}"></td><td><input class="date" type="date" value="${x.payment_date||''}"></td><td class="duecell">₹0</td></tr>`}).join('');calculate()}function calculate(){let p=0,a=0;document.querySelectorAll('#rows tr').forEach(t=>{let x=+t.querySelector('.payable').value||0,y=+t.querySelector('.paid').value||0;p+=x;a+=y;let d=Math.max(0,x-y),c=t.querySelector('.duecell');c.textContent=money(d);c.className='duecell '+(d?'pending':'zero')});let d=Math.max(0,p-a);$('tp').textContent=$('sp').textContent=money(p);$('ta').textContent=$('sa').textContent=money(a);$('td').textContent=$('sd').textContent=money(d)}function scheduleAutoSave(){calculate();$('saveStatus').textContent='Saving...';clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveRecords(true),900)}async function saveRecords(silent=false){if(!selected)return;$('saveStatus').textContent='Saving...';let yr=+$('year').value,d=[];document.querySelectorAll('#rows tr').forEach((t,i)=>d.push({person_id:selected.id,year:yr,month:i+1,payable:+t.querySelector('.payable').value||0,paid:+t.querySelector('.paid').value||0,payment_date:t.querySelector('.date').value||null}));let r=await db.from('salary_records').upsert(d,{onConflict:'person_id,year,month'});if(r.error){$('saveStatus').textContent='Save failed';if(!silent)alert(r.error.message);return}$('saveStatus').textContent='✓ Saved automatically';await dashboardTotals();renderMembers()}function yearChanged(){loadMembers();loadHomeOverallTotals();if(selected)loadRecords()}function populateDesignationOptions(){
+</div>`).join('');loadMemberTotals(arr)}async function loadMemberTotals(arr){let yr=+$('year').value;for(const p of arr){let r=await db.from('salary_records').select('payable,paid').eq('person_id',p.id).eq('year',yr);if(r.error)continue;let a=r.data.reduce((x,z)=>x+(+z.payable||0),0),b=r.data.reduce((x,z)=>x+(+z.paid||0),0);if($('p-'+p.id)){$('p-'+p.id).textContent=money(a);$('a-'+p.id).textContent=money(b);$('d-'+p.id).textContent=money(Math.max(0,a-b))}}}async function dashboardTotals(){let ids=managerDept?membersData.filter(p=>(p.department||'Unassigned')===managerDept).map(p=>p.id):null;let q=db.from('salary_records').select('payable,paid').eq('year',+$('year').value);if(ids)q=q.in('person_id',ids);let r=await q;if(r.error)return;let p=r.data.reduce((x,z)=>x+(+z.payable||0),0),a=r.data.reduce((x,z)=>x+(+z.paid||0),0);$('allPayable').textContent=money(p);$('allPaid').textContent=money(a);$('allDue').textContent=money(Math.max(0,p-a))}function selectMember(id){
+  selected=membersData.find(x=>x.id===id);
+  if(!selected)return;
+  $('empty').style.display='none';
+  $('detail').style.display='block';
+  $('personName').textContent=selected.name;
+  $('personEmployeeId').textContent='Employee ID: '+(selected.employee_id||'Not assigned');
+  $('personRole').textContent=selected.role||'No designation';
+  $('personDept').textContent='Department: '+(selected.department||'Unassigned');
+  showYearOverview();
+  renderMembers();
+  loadYearOverview();
+}
+async function loadYearOverview(){
+  if(!user?.id||!selected)return;
+  const r=await db.from('salary_records').select('year,payable,paid').eq('person_id',selected.id).order('year',{ascending:false});
+  if(r.error){alert(r.error.message);return}
+  const groups={};
+  (r.data||[]).forEach(row=>{
+    const year=Number(row.year);
+    if(!groups[year])groups[year]={payable:0,paid:0,records:0};
+    groups[year].payable+=Number(row.payable)||0;
+    groups[year].paid+=Number(row.paid)||0;
+    groups[year].records++;
+  });
+  const years=Object.keys(groups).map(Number).sort((a,b)=>b-a);
+  if(!years.length){
+    $('yearCards').innerHTML='<div class="year-empty">No salary records have been entered for this member yet.</div>';
+    return;
+  }
+  $('yearCards').innerHTML=years.map(year=>{
+    const x=groups[year],due=Math.max(0,x.payable-x.paid);
+    return '<div class="year-card" role="button" tabindex="0" onclick="selectMemberYear('+year+')" onkeydown="if(event.key===\\'Enter\\'||event.key===\\' \\')selectMemberYear('+year+')">'+
+      '<div class="year-card-top"><div class="year-card-year">'+year+'</div><div class="year-card-records">'+x.records+' record'+(x.records===1?'':'s')+'</div></div>'+
+      '<div class="year-card-stats"><div class="year-card-stat"><span>Payable</span><b>'+money(x.payable)+'</b></div><div class="year-card-stat"><span>Paid</span><b>'+money(x.paid)+'</b></div><div class="year-card-stat due"><span>Due</span><b>'+money(due)+'</b></div></div></div>';
+  }).join('');
+}
+function showYearOverview(){
+  $('yearOverview').style.display='block';
+  $('monthPanel').style.display='none';
+  $('saveNowBtn').style.display='none';
+  $('selectedYearLabel').textContent='';
+  if(selected)loadYearOverview();
+}
+function selectMemberYear(year){
+  $('year').value=String(year);
+  $('yearOverview').style.display='none';
+  $('monthPanel').style.display='block';
+  $('saveNowBtn').style.display='inline-block';
+  $('selectedYearLabel').textContent='Salary Details — '+year;
+  loadRecords();
+}
+async function loadRecords(){
+  if(!user?.id||!selected||!membersData.some(p=>p.id===selected.id))return;
+  const yr=+$('year').value;
+  let r=await db.from('salary_records').select('*').eq('person_id',selected.id).eq('year',yr);
+  if(r.error){alert(r.error.message);return}
+  const map=new Map((r.data||[]).map(x=>[x.month,x]));
+  $('rows').innerHTML=months.map((m,i)=>{
+    const x=map.get(i+1)||{};
+    return '<tr><td>'+m+'</td><td><input class="payable" type="number" min="0" value="'+(x.payable||0)+'"></td><td><input class="paid" type="number" min="0" value="'+(x.paid||0)+'"></td><td><input class="date" type="date" value="'+(x.payment_date||'')+'"></td><td class="duecell">₹0</td></tr>';
+  }).join('');
+  calculate();
+}
+function calculate(){
+  let p=0,a=0;
+  document.querySelectorAll('#rows tr').forEach(t=>{
+    const x=+t.querySelector('.payable').value||0,y=+t.querySelector('.paid').value||0;
+    p+=x;a+=y;
+    const d=Math.max(0,x-y),c=t.querySelector('.duecell');
+    c.textContent=money(d);c.className='duecell '+(d?'pending':'zero');
+  });
+  const d=Math.max(0,p-a);
+  $('tp').textContent=$('sp').textContent=money(p);
+  $('ta').textContent=$('sa').textContent=money(a);
+  $('td').textContent=$('sd').textContent=money(d);
+}
+function scheduleAutoSave(){
+  calculate();$('saveStatus').textContent='Saving...';clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveRecords(true),900);
+}
+async function saveRecords(silent=false){
+  if(!selected)return;
+  $('saveStatus').textContent='Saving...';
+  const yr=+$('year').value,d=[];
+  document.querySelectorAll('#rows tr').forEach((t,i)=>d.push({person_id:selected.id,year:yr,month:i+1,payable:+t.querySelector('.payable').value||0,paid:+t.querySelector('.paid').value||0,payment_date:t.querySelector('.date').value||null}));
+  const r=await db.from('salary_records').upsert(d,{onConflict:'person_id,year,month'});
+  if(r.error){$('saveStatus').textContent='Save failed';if(!silent)alert(r.error.message);return}
+  $('saveStatus').textContent='✓ Saved automatically';
+  await dashboardTotals();renderMembers();await loadYearOverview();
+}
+function yearChanged(){
+  loadMembers();loadHomeOverallTotals();
+  if(selected)showYearOverview();
+}
+function populateDesignationOptions(){
   const el=$('role');
   if(!el)return;
   const current=el.value;
